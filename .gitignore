@@ -1,3 +1,11 @@
+# Semi-Social specific ignores
+node_modules/
+.env
+.env.*
+!.env.example
+build/
+dist/
+
 # Logs
 logs
 *.log

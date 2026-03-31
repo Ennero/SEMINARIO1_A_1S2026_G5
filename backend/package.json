@@ -1,0 +1,22 @@
+{
+  "name": "semi-social-backend",
+  "version": "1.0.0",
+  "description": "Semi-Social REST API backend built with Node.js and Express",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "^3.600.0",
+    "@aws-sdk/client-lex-runtime-v2": "^3.600.0",
+    "@aws-sdk/client-rekognition": "^3.600.0",
+    "@aws-sdk/client-s3": "^3.600.0",
+    "@aws-sdk/client-translate": "^3.600.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.0",
+    "express": "^4.18.2",
+    "pg": "^8.11.0",
+    "socket.io": "^4.6.0"
+  }
+}
