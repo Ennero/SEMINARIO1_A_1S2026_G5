@@ -82,3 +82,34 @@ _Insertar captura de pantalla del bot de Amazon Lex configurado para el asistent
 ### Check LoadBalancer
 
 _Insertar captura de pantalla del Application Load Balancer (ALB) y su estado de salud._
+
+## Ejecucion local con Docker
+
+Desde la raiz del proyecto se puede levantar frontend y backend al mismo tiempo:
+
+```bash
+docker compose up --build
+```
+
+Servicios disponibles:
+
+- Frontend: `http://localhost:3000`
+- Backend: `http://localhost:5000`
+
+Comandos utiles:
+
+```bash
+# Levantar en segundo plano
+docker compose up -d --build
+
+# Ver logs
+docker compose logs -f
+
+# Detener y eliminar contenedores
+docker compose down
+```
+
+Variables opcionales de puertos:
+
+- `FRONTEND_PORT` (por defecto `3000`)
+- `BACKEND_PORT` (por defecto `5000`)
