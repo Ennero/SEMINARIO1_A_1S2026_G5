@@ -8,6 +8,7 @@ Table users {
   username varchar(50) [unique, not null, note: 'Usado para login']
   full_name varchar(100) [not null]
   email varchar(100) [unique, not null]
+  cognito_sub varchar(255) [unique, note: 'Subject UUID de Cognito para vincular tokens']
   dpi varchar(20) [unique, not null]
   password_md5 varchar(32) [not null]
   profile_image_url text [not null, note: 'S3 URL de la foto obligatoria']
@@ -61,6 +62,8 @@ Table post_tags {
 
 Table chat_rooms {
   id serial [pk]
+  room_key varchar(120) [unique, note: 'Clave unica para chat 1-1: min(user_id):max(user_id)']
+  is_direct boolean [default: true, note: 'true para chat 1-1, false para grupos']
   created_at timestamp [default: `CURRENT_TIMESTAMP`]
 }
 

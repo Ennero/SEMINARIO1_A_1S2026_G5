@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS users (
   username VARCHAR(50) UNIQUE NOT NULL,
   full_name VARCHAR(100) NOT NULL,
   email VARCHAR(100) UNIQUE NOT NULL,
+  cognito_sub VARCHAR(255) UNIQUE,
   dpi VARCHAR(20) UNIQUE NOT NULL,
   password_md5 CHAR(32) NOT NULL,
   profile_image_url TEXT NOT NULL,
@@ -51,7 +52,10 @@ CREATE TABLE IF NOT EXISTS post_tags (
 
 CREATE TABLE IF NOT EXISTS chat_rooms (
   id SERIAL PRIMARY KEY,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  room_key VARCHAR(120) UNIQUE,
+  is_direct BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT chat_rooms_direct_key CHECK (NOT is_direct OR room_key IS NOT NULL)
 );
 
 CREATE TABLE IF NOT EXISTS chat_room_participants (
