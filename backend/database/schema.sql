@@ -1,17 +1,31 @@
 CREATE TABLE IF NOT EXISTS users (
   id SERIAL PRIMARY KEY,
   username VARCHAR(50) UNIQUE NOT NULL,
+  full_name VARCHAR(100) NOT NULL,
   email VARCHAR(100) UNIQUE NOT NULL,
-  password_md5 VARCHAR(32) NOT NULL,
-  profile_image_url TEXT,
+  dpi VARCHAR(20) UNIQUE NOT NULL,
+  password_md5 CHAR(32) NOT NULL,
+  profile_image_url TEXT NOT NULL,
+  rekognition_face_id VARCHAR(255),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS friendships (
+  id SERIAL PRIMARY KEY,
+  sender_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  receiver_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  status VARCHAR(20) NOT NULL DEFAULT 'pending',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  responded_at TIMESTAMP,
+  CONSTRAINT friendships_unique_pair UNIQUE (sender_id, receiver_id),
+  CONSTRAINT friendships_no_self CHECK (sender_id <> receiver_id)
 );
 
 CREATE TABLE IF NOT EXISTS posts (
   id SERIAL PRIMARY KEY,
   user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  content TEXT NOT NULL,
-  image_url TEXT,
+  image_url TEXT NOT NULL,
+  description TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -23,10 +37,28 @@ CREATE TABLE IF NOT EXISTS comments (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS tags (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100) UNIQUE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS post_tags (
+  post_id INT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+  tag_id INT NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
+  confidence NUMERIC(5,2),
+  PRIMARY KEY (post_id, tag_id)
+);
+
 CREATE TABLE IF NOT EXISTS chat_rooms (
   id SERIAL PRIMARY KEY,
-  name VARCHAR(100) UNIQUE NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS chat_room_participants (
+  room_id INT NOT NULL REFERENCES chat_rooms(id) ON DELETE CASCADE,
+  user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (room_id, user_id)
 );
 
 CREATE TABLE IF NOT EXISTS chat_messages (

@@ -1,0 +1,83 @@
+Project SemiSocial {
+  database_type: 'PostgreSQL'
+  Note: 'Esquema de base de datos para Semi-Social (Desplegado en AWS RDS)'
+}
+
+Table users {
+  id serial [pk]
+  username varchar(50) [unique, not null, note: 'Usado para login']
+  full_name varchar(100) [not null]
+  email varchar(100) [unique, not null]
+  dpi varchar(20) [unique, not null]
+  password_md5 varchar(32) [not null]
+  profile_image_url text [not null, note: 'S3 URL de la foto obligatoria']
+  rekognition_face_id varchar(255) [note: 'FaceId en la coleccion de Rekognition']
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+Table friendships {
+  id serial [pk]
+  sender_id int [ref: > users.id, not null]
+  receiver_id int [ref: > users.id, not null]
+  status varchar(20) [default: 'pending', note: 'Estados: pending, accepted, rejected']
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  responded_at timestamp
+
+  indexes {
+    (sender_id, receiver_id) [unique]
+  }
+}
+
+Table posts {
+  id serial [pk]
+  user_id int [ref: > users.id, not null]
+  image_url text [not null, note: 'S3 URL obligatoria (a través de lambda)']
+  description text [note: 'Opcional, puede ser traducida con Amazon Translate']
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+Table comments {
+  id serial [pk]
+  post_id int [ref: > posts.id, not null]
+  user_id int [ref: > users.id, not null]
+  content text [not null, note: 'Puede ser traducido con Amazon Translate']
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+Table tags {
+  id serial [pk]
+  name varchar(100) [unique, not null, note: 'Las etiquetas devueltas por AWS Rekognition']
+}
+
+Table post_tags {
+  post_id int [ref: > posts.id, not null]
+  tag_id int [ref: > tags.id, not null]
+  confidence numeric(5,2) [note: 'Confianza devuelta por Rekognition']
+
+  indexes {
+    (post_id, tag_id) [unique]
+  }
+}
+
+Table chat_rooms {
+  id serial [pk]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+Table chat_room_participants {
+  room_id int [ref: > chat_rooms.id, not null]
+  user_id int [ref: > users.id, not null]
+  added_at timestamp [default: `CURRENT_TIMESTAMP`]
+  
+  indexes {
+    (room_id, user_id) [unique]
+  }
+}
+
+Table chat_messages {
+  id serial [pk]
+  room_id int [ref: > chat_rooms.id, not null]
+  sender_id int [ref: > users.id, not null]
+  message text [not null]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+}

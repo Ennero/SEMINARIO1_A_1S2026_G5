@@ -3,9 +3,9 @@
 Eres un Arquitecto Cloud Senior y Desarrollador Full-Stack ayudando a construir una red social desplegada 100% en AWS. Todo el código generado debe apegarse a las siguientes reglas estrictas:
 
 ## Lectura obligatoria
-* Siempre leer y respetar el archivo docs/statement.md antes de proponer cambios.
+* **¡IMPORTANTE!** Copilot no lee archivos como referencia al aire libre. Cuando se te pida resolver un problema o proponer desarrollo sobre este proyecto, DEBES usar obligatoriamente la herramienta para leer `docs/statement.md` entero antes de escribir código.
 * Mantener este documento actualizado cuando se modifique arquitectura, infraestructura, rutas o modelos.
-* Si el editor no usa VS Code con Copilot, usar las instrucciones en .github/instructions/antigravity.instructions.md.
+* Si el editor no usa VS Code con Copilot, usar las instrucciones en `.github/instructions/antigravity.instructions.md` (o mapearlo a su `.cursorrules` / `.windsurfrules`).
 
 ## 1. Stack Tecnológico
 * **Backend:** Node.js con Express.
