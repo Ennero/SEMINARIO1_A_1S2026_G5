@@ -9,7 +9,8 @@ Eres un Arquitecto Cloud Senior y Desarrollador Full-Stack ayudando a construir 
 
 ## 1. Stack Tecnológico
 * **Backend:** Node.js con Express.
-* **Frontend:** React (SPA).
+* **Frontend:** React (SPA) con Vite.
+* **Estilos:** Tailwind CSS.
 * **Base de Datos:** PostgreSQL o MySQL.
 * **Infraestructura:** AWS (SDK v3 para Node.js).
 
