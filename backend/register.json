@@ -1,0 +1,10 @@
+{
+  "fullName": "Usuario Prueba",
+  "email": "test_1776704217@example.com",
+  "dpi": "1234567890123",
+  "password": "Prueba123!",
+  "confirmPassword": "Prueba123!",
+  "imageBase64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7Zx2QAAAAASUVORK5CYII=",
+  "contentType": "image/png",
+  "fileName": "test.png"
+}

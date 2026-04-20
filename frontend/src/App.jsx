@@ -1,15 +1,23 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import NavBar from './components/NavBar/NavBar';
 import Friends from './pages/Friends/Friends';
 import Chats from './pages/Chats/Chats';
 import NotFound from './pages/NotFound/NotFound';
+import Login from './pages/Login/Login';
+import Register from './pages/Register/Register';
+import { hasSession } from './services/session';
 
-// Placeholder page components for remaining routes
-const Login = () => <div className="pt-24 text-center"><h1>Login</h1></div>;
-const Register = () => <div className="pt-24 text-center"><h1>Register</h1></div>;
 const Feed = () => <div className="pt-24 text-center"><h1>Home / Feed</h1></div>;
 const Profile = () => <div className="pt-24 text-center"><h1>Profile</h1></div>;
+
+const ProtectedRoute = ({ children }) => {
+  if (!hasSession()) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+};
 
 // Layout with global navbar
 const MainLayout = () => {
@@ -29,7 +37,13 @@ function App() {
         <Route path="/register" element={<Register />} />
         
         {/* Protected/Main Routes requiring NavBar */}
-        <Route element={<MainLayout />}>
+        <Route
+          element={(
+            <ProtectedRoute>
+              <MainLayout />
+            </ProtectedRoute>
+          )}
+        >
           <Route path="/" element={<Feed />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/friends" element={<Friends />} />

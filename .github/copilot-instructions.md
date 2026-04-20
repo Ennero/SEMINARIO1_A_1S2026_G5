@@ -36,3 +36,27 @@ Eres un Arquitecto Cloud Senior y Desarrollador Full-Stack ayudando a construir 
 ## Skills recomendadas
 * aws-integration
 * db-queries
+
+## Contexto vivo actualizado (2026-04-20)
+### Backend Auth y AWS
+* Ya existen servicios AWS SDK v3 modulares en `backend/aws-services/` para Cognito, Rekognition, Translate, Lex y subida de imagen de perfil (API Gateway con fallback a S3 directo).
+* Ya existe `backend/controllers/authController.js` con endpoints funcionales para:
+    * Registro con Cognito + persistencia en PostgreSQL (`password_md5`) + carga de foto de perfil.
+    * Confirmacion de usuario por codigo de correo en Cognito.
+    * Login por credenciales con Cognito.
+    * Login facial con Rekognition comparando webcam vs foto de perfil almacenada en S3.
+    * Obtencion de etiquetas de imagen (Rekognition DetectLabels).
+    * Traduccion de texto (Translate) a idiomas permitidos.
+    * Mensajes a chatbot (Lex Runtime V2).
+* `backend/routes/auth.js` ya no es placeholder y expone `/register`, `/confirm`, `/login`, `/login-facial`, `/labels`, `/translate`, `/chatbot`, `/logout`.
+* `backend/index.js` ahora valida variables de entorno obligatorias al iniciar (`backend/config/env.js`) y acepta payload JSON hasta 10MB para imagenes base64.
+
+### Frontend Auth
+* Ya existen pantallas reales de login y registro en `frontend/src/pages/Login/Login.jsx` y `frontend/src/pages/Register/Register.jsx`.
+* Registro incluye captura/subida de foto de perfil y confirmacion por codigo de Cognito.
+* Login incluye modo por credenciales y modo facial con webcam.
+* Existe componente `frontend/src/components/WebcamCapture/WebcamCapture.jsx` basado en `getUserMedia`.
+* Existe capa de servicios `frontend/src/services/` para API (`api.js`), auth (`authService.js`), session local (`session.js`) y endpoints IA (`aiService.js`).
+
+### Nota de seguridad
+* No hardcodear secretos. Si se detectan credenciales expuestas en archivos externos o adjuntos, deben rotarse y no copiarse al repositorio.
