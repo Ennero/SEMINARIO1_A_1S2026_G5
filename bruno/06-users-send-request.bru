@@ -1,0 +1,21 @@
+meta {
+  name: Users Send Friend Request
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/api/users/{{friendId}}/friend-requests
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "senderId": {{userId}}
+  }
+}

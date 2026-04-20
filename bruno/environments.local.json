@@ -1,0 +1,13 @@
+{
+  "name": "local",
+  "values": {
+    "baseUrl": "http://localhost:5000",
+    "userId": "1",
+    "friendId": "2",
+    "roomId": "1",
+    "postId": "1",
+    "requestId": "1",
+    "email": "test@example.com",
+    "password": "Prueba123!"
+  }
+}

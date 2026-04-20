@@ -58,5 +58,24 @@ Eres un Arquitecto Cloud Senior y Desarrollador Full-Stack ayudando a construir 
 * Existe componente `frontend/src/components/WebcamCapture/WebcamCapture.jsx` basado en `getUserMedia`.
 * Existe capa de servicios `frontend/src/services/` para API (`api.js`), auth (`authService.js`), session local (`session.js`) y endpoints IA (`aiService.js`).
 
+### Backend Social Core
+* `backend/routes/posts.js`, `backend/routes/users.js` y `backend/routes/chat.js` ya no son placeholders.
+* Ya existen controladores:
+    * `backend/controllers/postsController.js` (crear/listar/editar/eliminar posts, comentarios, traduccion de texto de posts/comentarios).
+    * `backend/controllers/usersController.js` (perfil, listado de usuarios, solicitudes de amistad, aceptar/rechazar, listado de amigos).
+    * `backend/controllers/chatController.js` (sala directa, listado de salas, persistencia y lectura de mensajes).
+* `backend/aws-services/imageUpload.js` permite reutilizar carga de imagen para perfiles y publicaciones.
+
+### Frontend Social Core
+* Ya existen vistas conectadas a backend para:
+    * Feed en `frontend/src/pages/Feed/Feed.jsx` (crear post, filtrar por etiqueta, comentar, traducir, chatbot Lex).
+    * Perfil en `frontend/src/pages/Profile/Profile.jsx` (actualizacion de datos y foto).
+    * Amigos en `frontend/src/pages/Friends/Friends.jsx` (sugerencias, solicitudes, aceptacion/rechazo, amigos).
+    * Chat en `frontend/src/pages/Chats/Chats.jsx` (sala directa y mensajes persistentes).
+* Se agregaron servicios frontend dedicados: `postsService.js`, `usersService.js`, `chatService.js`.
+
+### QA / API Testing
+* Existe carpeta `bruno/` con requests para pruebas de endpoints de health, auth, posts, amigos, chat y endpoints IA.
+
 ### Nota de seguridad
 * No hardcodear secretos. Si se detectan credenciales expuestas en archivos externos o adjuntos, deben rotarse y no copiarse al repositorio.

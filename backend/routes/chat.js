@@ -1,19 +1,22 @@
 const express = require('express');
 const router = express.Router();
+const {
+  getRooms,
+  getMessages,
+  sendMessage,
+  getOrCreateDirectRoom,
+} = require('../controllers/chatController');
 
 // GET /api/chat/rooms
-router.get('/rooms', (req, res) => {
-  res.json({ message: 'Get chat rooms placeholder' });
-});
+router.get('/rooms', getRooms);
+
+// POST /api/chat/direct-room
+router.post('/direct-room', getOrCreateDirectRoom);
 
 // GET /api/chat/messages/:room
-router.get('/messages/:room', (req, res) => {
-  res.json({ message: `Get messages for room ${req.params.room} placeholder` });
-});
+router.get('/messages/:room', getMessages);
 
 // POST /api/chat/messages
-router.post('/messages', (req, res) => {
-  res.json({ message: 'Send message placeholder' });
-});
+router.post('/messages', sendMessage);
 
 module.exports = router;

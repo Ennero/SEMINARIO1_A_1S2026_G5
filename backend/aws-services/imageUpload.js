@@ -59,11 +59,12 @@ async function uploadViaApiGateway({ imageBase64, fileName, contentType }) {
   throw new Error('IMAGE_UPLOAD_API_URL response does not include a valid key/url');
 }
 
-async function uploadDirectlyToS3({ imageBase64, fileName, contentType, email }) {
+async function uploadDirectlyToS3({ imageBase64, fileName, contentType, email, prefix = 'uploads' }) {
   const bucket = getImageBucket();
   const safeFileName = sanitizeFileName(fileName);
   const safeEmail = String(email || 'user').replace(/[^a-zA-Z0-9._-]/g, '_');
-  const key = `profiles/${safeEmail}-${Date.now()}-${safeFileName}`;
+  const safePrefix = String(prefix || 'uploads').replace(/[^a-zA-Z0-9/_-]/g, 'uploads');
+  const key = `${safePrefix}/${safeEmail}-${Date.now()}-${safeFileName}`;
 
   const command = new PutObjectCommand({
     Bucket: bucket,
@@ -76,7 +77,7 @@ async function uploadDirectlyToS3({ imageBase64, fileName, contentType, email })
   return buildS3Url(bucket, key);
 }
 
-async function uploadProfileImage({ imageBase64, fileName, contentType, email }) {
+async function uploadImageAsset({ imageBase64, fileName, contentType, email, prefix = 'uploads' }) {
   const urlFromApiGateway = await uploadViaApiGateway({
     imageBase64,
     fileName,
@@ -90,10 +91,21 @@ async function uploadProfileImage({ imageBase64, fileName, contentType, email })
     return urlFromApiGateway;
   }
 
-  return uploadDirectlyToS3({ imageBase64, fileName, contentType, email });
+  return uploadDirectlyToS3({ imageBase64, fileName, contentType, email, prefix });
+}
+
+async function uploadProfileImage({ imageBase64, fileName, contentType, email }) {
+  return uploadImageAsset({
+    imageBase64,
+    fileName,
+    contentType,
+    email,
+    prefix: 'profiles',
+  });
 }
 
 module.exports = {
+  uploadImageAsset,
   uploadProfileImage,
   normalizeBase64,
 };

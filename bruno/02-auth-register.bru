@@ -1,0 +1,28 @@
+meta {
+  name: Auth Register
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/auth/register
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "fullName": "Usuario Bruno",
+    "email": "{{email}}",
+    "dpi": "1234567890123",
+    "password": "{{password}}",
+    "confirmPassword": "{{password}}",
+    "imageBase64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7Zx2QAAAAASUVORK5CYII=",
+    "contentType": "image/png",
+    "fileName": "test.png"
+  }
+}

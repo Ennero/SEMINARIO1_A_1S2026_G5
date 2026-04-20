@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon --ignore server.log --ignore *.json index.js"
   },
   "dependencies": {
     "@aws-sdk/client-cognito-identity-provider": "^3.1021.0",

@@ -1,24 +1,38 @@
 const express = require('express');
 const router = express.Router();
+const {
+  getAllUsers,
+  getUserById,
+  updateUser,
+  deleteUser,
+  sendFriendRequest,
+  listIncomingRequests,
+  answerFriendRequest,
+  listFriends,
+} = require('../controllers/usersController');
 
 // GET /api/users
-router.get('/', (req, res) => {
-  res.json({ message: 'Get all users placeholder' });
-});
+router.get('/', getAllUsers);
 
 // GET /api/users/:id
-router.get('/:id', (req, res) => {
-  res.json({ message: `Get user ${req.params.id} placeholder` });
-});
+router.get('/:id', getUserById);
+
+// GET /api/users/:id/friends
+router.get('/:id/friends', listFriends);
+
+// GET /api/users/:id/friend-requests
+router.get('/:id/friend-requests', listIncomingRequests);
+
+// POST /api/users/:id/friend-requests
+router.post('/:id/friend-requests', sendFriendRequest);
+
+// PATCH /api/users/friend-requests/:requestId
+router.patch('/friend-requests/:requestId', answerFriendRequest);
 
 // PUT /api/users/:id
-router.put('/:id', (req, res) => {
-  res.json({ message: `Update user ${req.params.id} placeholder` });
-});
+router.put('/:id', updateUser);
 
 // DELETE /api/users/:id
-router.delete('/:id', (req, res) => {
-  res.json({ message: `Delete user ${req.params.id} placeholder` });
-});
+router.delete('/:id', deleteUser);
 
 module.exports = router;

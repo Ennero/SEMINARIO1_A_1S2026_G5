@@ -1,29 +1,34 @@
 const express = require('express');
 const router = express.Router();
+const {
+  getPosts,
+  getPostById,
+  createPost,
+  updatePost,
+  deletePost,
+  addComment,
+  translatePostText,
+} = require('../controllers/postsController');
 
 // GET /api/posts
-router.get('/', (req, res) => {
-  res.json({ message: 'Get all posts placeholder' });
-});
+router.get('/', getPosts);
 
 // GET /api/posts/:id
-router.get('/:id', (req, res) => {
-  res.json({ message: `Get post ${req.params.id} placeholder` });
-});
+router.get('/:id', getPostById);
 
 // POST /api/posts
-router.post('/', (req, res) => {
-  res.json({ message: 'Create post placeholder' });
-});
+router.post('/', createPost);
+
+// POST /api/posts/:id/comments
+router.post('/:id/comments', addComment);
+
+// POST /api/posts/:id/translate
+router.post('/:id/translate', translatePostText);
 
 // PUT /api/posts/:id
-router.put('/:id', (req, res) => {
-  res.json({ message: `Update post ${req.params.id} placeholder` });
-});
+router.put('/:id', updatePost);
 
 // DELETE /api/posts/:id
-router.delete('/:id', (req, res) => {
-  res.json({ message: `Delete post ${req.params.id} placeholder` });
-});
+router.delete('/:id', deletePost);
 
 module.exports = router;

@@ -6,10 +6,9 @@ import Chats from './pages/Chats/Chats';
 import NotFound from './pages/NotFound/NotFound';
 import Login from './pages/Login/Login';
 import Register from './pages/Register/Register';
+import Feed from './pages/Feed/Feed';
+import Profile from './pages/Profile/Profile';
 import { hasSession } from './services/session';
-
-const Feed = () => <div className="pt-24 text-center"><h1>Home / Feed</h1></div>;
-const Profile = () => <div className="pt-24 text-center"><h1>Profile</h1></div>;
 
 const ProtectedRoute = ({ children }) => {
   if (!hasSession()) {

@@ -1,0 +1,22 @@
+meta {
+  name: AI Chatbot
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{baseUrl}}/api/auth/chatbot
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "userId": {{userId}},
+    "message": "Que horarios tiene la facultad?"
+  }
+}

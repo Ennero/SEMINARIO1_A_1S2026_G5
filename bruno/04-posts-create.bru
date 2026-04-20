@@ -1,0 +1,25 @@
+meta {
+  name: Posts Create
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/posts
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "userId": {{userId}},
+    "description": "Post desde Bruno",
+    "imageBase64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7Zx2QAAAAASUVORK5CYII=",
+    "contentType": "image/png",
+    "fileName": "post-test.png"
+  }
+}
