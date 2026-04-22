@@ -19,6 +19,7 @@ export default function Chats() {
   const [roomId, setRoomId] = useState(null);
   const [draft, setDraft] = useState('');
   const [error, setError] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
