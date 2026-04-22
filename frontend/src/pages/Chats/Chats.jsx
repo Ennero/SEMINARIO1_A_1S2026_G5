@@ -3,6 +3,7 @@ import { io } from 'socket.io-client';
 import { getSessionUser } from '../../services/session';
 import { fetchFriends } from '../../services/usersService';
 import {
+  fetchChatRooms,
   fetchRoomMessages,
   getOrCreateDirectRoom,
   sendChatMessage,
@@ -16,6 +17,7 @@ export default function Chats() {
   const [activeFriend, setActiveFriend] = useState(null);
   const [friendsList, setFriendsList] = useState([]);
   const [messages, setMessages] = useState([]);
+  const [chatRooms, setChatRooms] = useState([]);
   const [roomId, setRoomId] = useState(null);
   const [draft, setDraft] = useState('');
   const [error, setError] = useState('');
@@ -31,26 +33,29 @@ export default function Chats() {
   }, [messages]);
 
   useEffect(() => {
-    async function loadFriends() {
+    async function loadData() {
       if (!sessionUser?.id) return;
 
       try {
-        const { friends } = await fetchFriends(sessionUser.id);
-        setFriendsList(friends || []);
+        const [friendsData, roomsData] = await Promise.all([
+          fetchFriends(sessionUser.id),
+          fetchChatRooms(sessionUser.id)
+        ]);
+        setFriendsList(friendsData.friends || []);
+        setChatRooms(roomsData.rooms || []);
       } catch (requestError) {
         setError(requestError.message);
       }
     }
 
-    loadFriends();
+    loadData();
   }, [sessionUser?.id]);
 
   useEffect(() => {
     const handleReceiveMessage = (data) => {
-      // Only append if it's the current room we are viewing
-      if (data.room === roomId) {
+      // room field in socket data may be string or number - compare as string
+      if (String(data.room) === String(roomId)) {
         setMessages((prevMessages) => {
-          // Prevent duplicates if we already added it locally
           if (prevMessages.some((msg) => msg.id === data.id)) return prevMessages;
           return [...prevMessages, data];
         });
@@ -73,10 +78,15 @@ export default function Chats() {
       const currentRoomId = roomData.room?.id;
       setRoomId(currentRoomId);
 
-      socket.emit('join_room', currentRoomId);
+      // join_room must be a string for socket.io rooms
+      socket.emit('join_room', String(currentRoomId));
 
       const messagesData = await fetchRoomMessages(currentRoomId, sessionUser.id);
       setMessages(messagesData.messages || []);
+      
+      // Update chatrooms so sidebar stays in sync
+      const roomsData = await fetchChatRooms(sessionUser.id);
+      setChatRooms(roomsData.rooms || []);
     } catch (requestError) {
       setError(requestError.message);
     }
@@ -90,27 +100,24 @@ export default function Chats() {
     setDraft('');
 
     try {
-      // Send to API to persist in database
       const response = await sendChatMessage({
         roomId,
         senderId: sessionUser.id,
         message: messageText,
       });
 
-      // Construct message object to broadcast and update locally
       const newMessage = {
-        id: response.message?.id || Date.now(), // Fallback if backend doesn't return ID immediately
-        room: roomId,
+        id: response.chatMessage?.id || Date.now(),
+        // room must be string to match socket room
+        room: String(roomId),
         sender_id: sessionUser.id,
         message: messageText,
         created_at: new Date().toISOString(),
       };
 
-      // Emit to socket
+      // Emit via socket — room field must match what join_room used
       socket.emit('send_message', newMessage);
 
-      // Append locally to feel faster, or refetch
-      // (The socket might also send it back to us, we deduplicate in handleReceiveMessage)
       setMessages((prev) => [...prev, newMessage]);
 
     } catch (requestError) {
@@ -144,7 +151,12 @@ export default function Chats() {
 
           <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
             {chatRooms.map(room => {
-              const friend = room.participants?.find(p => p.id !== sessionUser?.id) || {};
+              // participants may come as JSON strings from PostgreSQL's array_agg
+              const rawParticipants = room.participants || [];
+              const participants = rawParticipants.map(p => 
+                typeof p === 'string' ? JSON.parse(p) : p
+              );
+              const friend = participants.find(p => Number(p.id) !== Number(sessionUser?.id)) || {};
               return (
               <div 
                 key={`room-${room.id}`}
@@ -228,6 +240,42 @@ export default function Chats() {
         </div>
       </div>
       {error ? <p className="fixed bottom-4 right-4 bg-red-900/80 backdrop-blur-md border border-red-500/50 text-red-200 text-sm px-4 py-3 rounded-xl shadow-2xl z-50 animate-fade-in-up">{error}</p> : null}
+      
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-slate-800 border border-slate-600 rounded-[2rem] p-6 w-full max-w-md shadow-2xl relative">
+            <button 
+              onClick={() => setIsModalOpen(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <h2 className="text-xl font-black text-white mb-4">Nuevo Chat</h2>
+            <div className="space-y-3 max-h-64 overflow-y-auto custom-scrollbar">
+              {friendsList.length === 0 ? (
+                <p className="text-sm text-slate-400 italic">No tienes amigos agregados aún. Agrega nuevos amigos para iniciar un chat.</p>
+              ) : (
+                friendsList.map(friend => (
+                  <button 
+                    key={`modal-friend-${friend.id}`}
+                    onClick={() => {
+                      setIsModalOpen(false);
+                      openChat(friend);
+                    }}
+                    className="w-full flex items-center space-x-4 p-3 rounded-2xl cursor-pointer hover:bg-slate-700/50 border border-transparent hover:border-slate-600/50 transition-all text-left"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-600 to-orange-500 text-white grid place-items-center font-bold shadow-md">{String(friend.username || 'U').charAt(0).toUpperCase()}</div>
+                    <div>
+                      <h3 className="text-sm font-bold text-white">{friend.username}</h3>
+                      <p className="text-xs text-slate-400">{friend.full_name || friend.fullName}</p>
+                    </div>
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

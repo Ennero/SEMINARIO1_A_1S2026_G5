@@ -159,7 +159,11 @@ export default function Profile() {
               <div className="pt-2">
                 <img src={imageDataUrl} alt="preview" className="w-32 h-32 rounded-[1.5rem] object-cover border-2 border-slate-600 shadow-xl" />
               </div>
-            ) : null}
+            ) : (
+              <div className="pt-2">
+                <img src={sessionUser?.profileImageUrl || `https://ui-avatars.com/api/?name=${sessionUser?.fullName || 'User'}&background=random`} alt="current profile" className="w-32 h-32 rounded-[1.5rem] object-cover border-2 border-slate-600 shadow-xl opacity-70" />
+              </div>
+            )}
 
             <div className="pt-4 flex gap-4">
               <button disabled={isLoading} className="flex-1 sm:flex-none rounded-xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-orange-500 text-white px-8 py-3.5 font-bold shadow-lg shadow-red-500/30 disabled:opacity-50 transition-all">

@@ -44,12 +44,11 @@ export default function Friends() {
       const allUsers = usersData.users || [];
       const validRecommendations = allUsers.filter(u => {
         if (u.friendshipStatus === 'accepted') return false; // Ya son amigos
-        if (u.friendshipStatus === 'pending' && u.friendshipSenderId !== sessionUser?.id) return false; // Me envió, ya está en mis solicitudes entrantes
         return true;
       });
-      const latestUsers = validRecommendations.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)).slice(0, 3);
+      const sortedRecs = validRecommendations.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
 
-      setRecommendations(latestUsers);
+      setRecommendations(sortedRecs);
       setRequests(requestsData.requests || []);
       setFriends(friendsData.friends || []);
     } catch (error) {
@@ -73,7 +72,13 @@ export default function Friends() {
   };
 
   const filteredFriends = filterList(friends);
-  const filteredRecommendations = filterList(recommendations);
+  const getFilteredRecommendations = () => {
+    if (searchQuery) {
+      return filterList(recommendations);
+    }
+    return recommendations.slice(0, 3);
+  };
+  const filteredRecommendations = getFilteredRecommendations();
 
   return (
     <div className="min-h-screen w-full pt-24 pb-16 px-6 bg-slate-900 flex flex-col items-center relative overflow-hidden font-sans">
@@ -157,7 +162,12 @@ export default function Friends() {
             Nuevos Usuarios
           </h2>
           <div className="space-y-3">
-            {filteredRecommendations.map((rec, i) => (
+            {filteredRecommendations.map((rec, i) => {
+              const myId = Number(sessionUser?.id);
+              const isPendingSentByMe = rec.friendshipStatus === 'pending' && Number(rec.friendshipSenderId) === myId;
+              const isPendingSentByThem = rec.friendshipStatus === 'pending' && Number(rec.friendshipSenderId) !== myId;
+
+              return (
               <div key={`rec-${rec.id}`} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-2 bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 hover:border-slate-600 hover:bg-slate-800 transition-all duration-300 group" style={{animationDelay: `${(i * 0.1) + 0.5}s`}}>
                 <div className="flex items-center space-x-4">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-600 to-orange-500 text-white grid place-items-center font-black shadow-lg">{String(rec.username || 'U').charAt(0).toUpperCase()}</div>
@@ -166,17 +176,44 @@ export default function Friends() {
                     <p className="text-xs text-slate-400 font-medium">{rec.fullName}</p>
                   </div>
                 </div>
-                <button 
-                  onClick={async () => {
-                    await sendFriendRequest(rec.id, sessionUser.id);
-                    showToast(`Solicitud enviada a ${rec.username}`, 'success');
-                  }}
-                  className="w-full sm:w-auto px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs rounded-xl shadow-md border border-slate-600 transition-all"
-                >
-                  Agregar
-                </button>
+                {isPendingSentByMe ? (
+                  <button disabled className="w-full sm:w-auto px-4 py-2 bg-slate-700/50 text-slate-400 font-bold text-xs rounded-xl shadow-md border border-slate-600 cursor-not-allowed transition-all">
+                    Solicitud enviada
+                  </button>
+                ) : isPendingSentByThem ? (
+                  <button 
+                    onClick={async () => {
+                      const reqItem = requests.find(r => Number(r.sender_id) === Number(rec.id));
+                      if (reqItem) {
+                        try {
+                          await answerFriendRequest(reqItem.id, sessionUser.id, 'accept');
+                          showToast(`Solicitud aceptada de ${rec.username}`, 'success');
+                          await loadData();
+                        } catch (err) {
+                          showToast(err.message || 'Error al aceptar solicitud', 'error');
+                        }
+                      } else {
+                        showToast('Error: No se encontró la solicitud', 'error');
+                      }
+                    }}
+                    className="w-full sm:w-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-md border border-emerald-500 transition-all"
+                  >
+                    Aceptar solicitud
+                  </button>
+                ) : (
+                  <button 
+                    onClick={async () => {
+                      await sendFriendRequest(rec.id, sessionUser.id);
+                      showToast(`Solicitud enviada a ${rec.username}`, 'success');
+                      await loadData();
+                    }}
+                    className="w-full sm:w-auto px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs rounded-xl shadow-md border border-slate-600 transition-all"
+                  >
+                    Agregar
+                  </button>
+                )}
               </div>
-            ))}
+            )})}
             {!loading && filteredRecommendations.length === 0 ? <p className="text-sm text-slate-500 italic px-2">No se encontraron sugerencias.</p> : null}
           </div>
         </div>

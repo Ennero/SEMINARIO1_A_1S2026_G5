@@ -28,7 +28,7 @@ export default function Feed() {
   const refreshPosts = async (opts = {}) => {
     try {
       setError('');
-      const { posts: loadedPosts } = await fetchPosts(opts);
+      const { posts: loadedPosts } = await fetchPosts({ userId: sessionUser?.id, ...opts });
       setPosts(loadedPosts || []);
     } catch (requestError) {
       setError(requestError.message);
@@ -36,8 +36,8 @@ export default function Feed() {
   };
 
   useEffect(() => {
-    refreshPosts();
-  }, []);
+    if (sessionUser?.id) refreshPosts();
+  }, [sessionUser?.id]);
 
   const tags = useMemo(() => {
     const all = new Set();

@@ -71,9 +71,17 @@ async function updateUser(req, res) {
     const { id } = req.params;
     const { fullName, dpi, username, password, imageBase64, fileName, contentType } = req.body;
 
-    const existing = await pool.query('SELECT id, email, profile_image_url FROM users WHERE id = $1 LIMIT 1', [id]);
+    const existing = await pool.query('SELECT id, email, profile_image_url, password_md5 FROM users WHERE id = $1 LIMIT 1', [id]);
     if (existing.rowCount === 0) {
       return res.status(404).json({ error: 'User not found.' });
+    }
+
+    if (!password) {
+      return res.status(400).json({ error: 'Contraseña requerida para guardar los cambios.' });
+    }
+
+    if (hashPasswordMd5(password) !== existing.rows[0].password_md5) {
+      return res.status(401).json({ error: 'Contraseña incorrecta.' });
     }
 
     let imageUrl = existing.rows[0].profile_image_url;
@@ -87,8 +95,6 @@ async function updateUser(req, res) {
       });
     }
 
-    const passwordMd5 = password ? hashPasswordMd5(password) : null;
-
     const result = await pool.query(
       `
         UPDATE users
@@ -96,16 +102,14 @@ async function updateUser(req, res) {
           full_name = COALESCE($1, full_name),
           dpi = COALESCE($2, dpi),
           username = COALESCE($3, username),
-          password_md5 = COALESCE($4, password_md5),
-          profile_image_url = COALESCE($5, profile_image_url)
-        WHERE id = $6
+          profile_image_url = COALESCE($4, profile_image_url)
+        WHERE id = $5
         RETURNING id, username, full_name, email, dpi, profile_image_url, created_at
       `,
       [
         fullName || null,
         dpi || null,
         username || null,
-        passwordMd5,
         imageUrl,
         id,
       ]

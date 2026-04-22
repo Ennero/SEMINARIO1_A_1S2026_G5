@@ -109,7 +109,7 @@ async function upsertPostLabels({ postId, labels }) {
 
 async function getPosts(req, res) {
   try {
-    const { tag, q, limit = 50 } = req.query;
+    const { tag, q, limit = 50, userId } = req.query;
 
     const values = [];
     const conditions = [];
@@ -124,6 +124,21 @@ async function getPosts(req, res) {
     if (q) {
       values.push(`%${String(q).toLowerCase()}%`);
       conditions.push(`LOWER(COALESCE(p.description, '')) LIKE $${values.length}`);
+    }
+
+    // Filter to only show posts from the current user and their accepted friends
+    if (userId) {
+      values.push(Number(userId));
+      const uidIdx = values.length;
+      conditions.push(`(
+        p.user_id = $${uidIdx}
+        OR p.user_id IN (
+          SELECT CASE WHEN f.sender_id = $${uidIdx} THEN f.receiver_id ELSE f.sender_id END
+          FROM friendships f
+          WHERE (f.sender_id = $${uidIdx} OR f.receiver_id = $${uidIdx})
+            AND f.status = 'accepted'
+        )
+      )`);
     }
 
     values.push(Number(limit));
@@ -361,7 +376,12 @@ async function translatePostText(req, res) {
         return res.status(404).json({ error: 'Comment not found for this post.' });
       }
 
-      const translated = await translateText({ text: commentResult.rows[0].content, targetLanguageCode });
+      const commentText = commentResult.rows[0].content || '';
+      if (!commentText.trim()) {
+        return res.status(200).json({ translated: { translatedText: '' }, source: 'comment', commentId: Number(commentId) });
+      }
+
+      const translated = await translateText({ text: commentText, targetLanguageCode });
       return res.status(200).json({ translated, source: 'comment', commentId: Number(commentId) });
     }
 
@@ -371,6 +391,10 @@ async function translatePostText(req, res) {
     }
 
     const sourceText = postResult.rows[0].description || '';
+    if (!sourceText.trim()) {
+      return res.status(200).json({ translated: { translatedText: '' }, source: 'post', postId: Number(id) });
+    }
+
     const translated = await translateText({ text: sourceText, targetLanguageCode });
     return res.status(200).json({ translated, source: 'post', postId: Number(id) });
   } catch (error) {
