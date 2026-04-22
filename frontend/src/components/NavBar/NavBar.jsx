@@ -23,7 +23,7 @@ export default function NavBar() {
       {/* Brand - Restored Typography */}
       <div className="flex items-center space-x-4">
         <img src={logo} alt="Logo" className="h-14 w-auto object-contain transition-transform hover:scale-110" />
-        <span className="text-2xl font-black tracking-wider text-white drop-shadow-md" style={{fontFamily: "'Comic Sans MS', cursive, sans-serif"}}>
+        <span className="text-2xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-400 drop-shadow-md">
           Semi-Social
         </span>
       </div>

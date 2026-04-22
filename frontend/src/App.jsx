@@ -10,6 +10,7 @@ import Feed from './pages/Feed/Feed';
 import Profile from './pages/Profile/Profile';
 import { hasSession } from './services/session';
 import Home from './pages/Home/Home';
+import ChatbotWidget from './components/ChatbotWidget/ChatbotWidget';
 
 const ProtectedRoute = ({ children }) => {
   if (!hasSession()) {
@@ -25,6 +26,7 @@ const MainLayout = () => {
     <>
       <NavBar />
       <Outlet />
+      <ChatbotWidget />
     </>
   );
 };

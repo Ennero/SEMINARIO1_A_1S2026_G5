@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getSessionUser } from '../../services/session';
 import { addPostComment, createPost, fetchPosts, translatePostText } from '../../services/postsService';
-import { sendChatbotMessage } from '../../services/aiService';
 
 function fileToDataUrl(file) {
   return new Promise((resolve, reject) => {
@@ -25,8 +24,6 @@ export default function Feed() {
   const [imageDataUrl, setImageDataUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [chatInput, setChatInput] = useState('');
-  const [chatReply, setChatReply] = useState('');
 
   const refreshPosts = async (opts = {}) => {
     try {
@@ -106,30 +103,6 @@ export default function Feed() {
     }
   };
 
-  const onTranslatePost = async (postId) => {
-    try {
-      const { translated } = await translatePostText(postId, { targetLanguageCode: 'en' });
-      alert(`Translated: ${translated?.translatedText || 'No text'}`);
-    } catch (requestError) {
-      setError(requestError.message);
-    }
-  };
-
-  const onAskChatbot = async (event) => {
-    event.preventDefault();
-    if (!chatInput) return;
-
-    try {
-      const response = await sendChatbotMessage({
-        message: chatInput,
-        userId: sessionUser?.id,
-      });
-      setChatReply(response.firstMessage || 'Sin respuesta del bot.');
-    } catch (requestError) {
-      setError(requestError.message);
-    }
-  };
-
   const applyFilters = async () => {
     await refreshPosts({
       tag: selectedTag === 'all' ? undefined : selectedTag,
@@ -145,7 +118,7 @@ export default function Feed() {
         <div className="absolute w-[600px] h-[600px] bg-sky-500/20 blur-[120px] rounded-full bottom-[-10%] right-[-10%] animate-pulse" style={{ animationDelay: '2s' }}></div>
       </div>
 
-      <section className="relative z-10 max-w-6xl mx-auto grid lg:grid-cols-[1.3fr_0.7fr] gap-6">
+      <section className="relative z-10 max-w-4xl mx-auto flex flex-col gap-6">
         <div className="space-y-6">
           <article className="bg-slate-800/80 backdrop-blur-xl rounded-[2rem] border border-slate-700 shadow-2xl p-6">
             <h1 className="text-2xl font-black text-white">Publicaciones</h1>
@@ -185,50 +158,64 @@ export default function Feed() {
 
           <div className="space-y-6">
             {posts.map((post) => (
-              <PostCard key={post.id} post={post} onComment={onAddComment} onTranslate={onTranslatePost} />
+              <PostCard key={post.id} post={post} onComment={onAddComment} />
             ))}
           </div>
 
           {error ? <div className="p-3 bg-red-900/30 border border-red-500/30 rounded-xl text-sm text-red-400 animate-fade-in">{error}</div> : null}
         </div>
-
-        <aside className="bg-slate-800/80 backdrop-blur-xl rounded-[2rem] border border-slate-700 shadow-2xl p-6 h-fit sticky top-24">
-          <h2 className="text-xl font-black text-white">Chatbot Lex</h2>
-          <p className="text-sm text-slate-400 mt-1">Consulta temas de la facultad desde aquí.</p>
-
-          <form className="mt-5 space-y-4" onSubmit={onAskChatbot}>
-            <textarea
-              value={chatInput}
-              onChange={(event) => setChatInput(event.target.value)}
-              placeholder="Hazle una pregunta al bot..."
-              className="w-full rounded-xl border border-slate-600 bg-slate-900/50 text-white px-4 py-3 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all min-h-24 text-sm"
-            />
-            <button className="w-full rounded-xl px-4 py-3 bg-gradient-to-r from-blue-600 to-sky-500 hover:from-sky-500 hover:to-blue-400 text-white font-bold shadow-lg shadow-blue-500/25 transition-all text-sm">Preguntar al Asistente</button>
-          </form>
-
-          {chatReply ? <div className="mt-4 text-sm text-sky-100 bg-sky-900/30 border border-sky-500/30 rounded-xl p-4 animate-fade-in">{chatReply}</div> : null}
-        </aside>
       </section>
     </main>
   );
 }
 
-function PostCard({ post, onComment, onTranslate }) {
+function PostCard({ post, onComment }) {
   const [comment, setComment] = useState('');
+  const [translatedText, setTranslatedText] = useState(null);
+  const [lang, setLang] = useState('en');
+  const [isTranslating, setIsTranslating] = useState(false);
+
+  const onTranslate = async () => {
+    setIsTranslating(true);
+    try {
+      const { translated } = await translatePostText(post.id, { targetLanguageCode: lang });
+      setTranslatedText(translated?.translatedText || 'Sin texto.');
+    } catch (err) {
+      console.error(err);
+      setTranslatedText('Error en traducción.');
+    } finally {
+      setIsTranslating(false);
+    }
+  };
 
   return (
     <article className="bg-slate-800/80 backdrop-blur-xl rounded-[2rem] border border-slate-700 shadow-xl overflow-hidden hover:border-slate-600 transition-colors">
       <img src={post.imageUrl} alt="post" className="w-full max-h-[500px] object-cover border-b border-slate-700/50" />
       <div className="p-6 space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <p className="font-bold text-white text-lg">{post.username || 'Usuario'}</p>
             <p className="text-xs text-slate-400">{new Date(post.createdAt).toLocaleString()}</p>
           </div>
-          <button onClick={() => onTranslate(post.id)} className="text-sm font-semibold text-red-400 hover:text-red-300 transition-colors bg-red-500/10 px-3 py-1.5 rounded-lg border border-red-500/20">Traducir 🌍</button>
+          <div className="flex items-center space-x-2">
+            <select value={lang} onChange={(e) => setLang(e.target.value)} className="bg-slate-900/50 text-slate-300 text-xs border border-slate-600 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500">
+              <option value="en">Inglés</option>
+              <option value="it">Italiano</option>
+              <option value="pt">Portugués</option>
+            </select>
+            <button onClick={onTranslate} disabled={isTranslating} className="text-sm font-semibold text-red-400 hover:text-red-300 transition-colors bg-red-500/10 px-3 py-1.5 rounded-lg border border-red-500/20 disabled:opacity-50">
+              {isTranslating ? '...' : 'Traducir 🌍'}
+            </button>
+          </div>
         </div>
 
-        <p className="text-slate-300 text-sm leading-relaxed">{post.description || <span className="italic text-slate-500">Sin descripción</span>}</p>
+        <p className="text-slate-300 text-sm leading-relaxed">
+          {translatedText ? (
+             <span className="text-orange-300 animate-fade-in">{translatedText}</span>
+          ) : (
+             post.description || <span className="italic text-slate-500">Sin descripción</span>
+          )}
+        </p>
 
         <div className="flex flex-wrap gap-2 pt-1">
           {(post.tags || []).map((tag) => (

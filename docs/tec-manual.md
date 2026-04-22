@@ -47,7 +47,7 @@ Nota local:
 - Para ejecutar backend en host con DB en contenedor, usar `DB_HOST=localhost`.
 - En Docker Compose, backend usa `DB_HOST=db` automaticamente dentro de su servicio.
 
-## 5. Endpoints Implementados
+## 5. Endpoints Implementados  
 
 ### 5.1 Auth / IA (`/api/auth`)
 - `POST /register`
