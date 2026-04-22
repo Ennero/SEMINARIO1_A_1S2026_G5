@@ -46,28 +46,37 @@ function normalizeImagePayload(imageInput) {
 
 function extractAwsError(error) {
   const code = error.name || 'UnknownError';
+  const msg = error.message || '';
 
   if (code === 'UsernameExistsException') {
-    return { status: 409, message: 'The email is already registered in Cognito.' };
+    return { status: 409, message: 'El correo electrónico ya está registrado.' };
   }
 
   if (code === 'NotAuthorizedException') {
-    return { status: 401, message: 'Invalid credentials.' };
+    return { status: 401, message: 'Credenciales inválidas.' };
   }
 
   if (code === 'UserNotFoundException') {
-    return { status: 404, message: 'User not found in Cognito.' };
+    return { status: 404, message: 'Usuario no encontrado en el sistema.' };
   }
 
   if (code === 'CodeMismatchException') {
-    return { status: 400, message: 'Invalid confirmation code.' };
+    return { status: 400, message: 'El código de confirmación es inválido o incorrecto.' };
   }
 
   if (code === 'ExpiredCodeException') {
-    return { status: 400, message: 'The confirmation code has expired.' };
+    return { status: 400, message: 'El código de confirmación ha expirado. Solicita otro.' };
+  }
+  
+  if (code === 'InvalidPasswordException') {
+    return { status: 400, message: 'La contraseña no cumple con los requisitos mínimos (8 caracteres, mayúscula, número, carácter especial).' };
   }
 
-  return { status: 500, message: error.message || 'Unexpected AWS error.' };
+  if (code === 'InvalidParameterException' && msg.includes('attributes')) {
+    return { status: 400, message: 'Faltan atributos requeridos por el sistema (como nombre, foto o apellido).' };
+  }
+
+  return { status: 500, message: `Error inesperado: ${msg}` };
 }
 
 async function registerUser(req, res) {
@@ -126,11 +135,18 @@ async function registerUser(req, res) {
       email,
     });
 
+    const nameParts = fullName.split(' ');
+    const givenName = nameParts[0];
+    const familyName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : 'Usuario';
+
     const signUpResponse = await signUpUser({
       email,
       password,
       fullName,
       username: normalizedUsername,
+      given_name: givenName,
+      family_name: familyName,
+      picture: imageUrl,
     });
 
     const passwordMd5 = hashPasswordMd5(password);

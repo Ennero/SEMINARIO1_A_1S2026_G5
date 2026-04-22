@@ -23,11 +23,17 @@ function buildSecretHash(username) {
     .digest('base64');
 }
 
-async function signUpUser({ email, password, fullName, username }) {
+async function signUpUser({ email, password, fullName, username, given_name, family_name, picture }) {
   const attributes = [
     { Name: 'email', Value: email },
     { Name: 'name', Value: fullName },
+    { Name: 'given_name', Value: given_name || fullName.split(' ')[0] },
+    { Name: 'family_name', Value: family_name || fullName.split(' ').slice(1).join(' ') || 'N/A' },
   ];
+
+  if (picture) {
+    attributes.push({ Name: 'picture', Value: picture });
+  }
 
   if (username) {
     attributes.push({ Name: 'preferred_username', Value: username });
