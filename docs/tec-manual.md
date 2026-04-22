@@ -48,8 +48,8 @@ Nota local:
 - En Docker Compose, backend usa `DB_HOST=db` automaticamente dentro de su servicio.
 
 ## 5. Endpoints Implementados  
-
-
+![alt text]({1A101736-7AB0-4CB7-970A-92CD8121BDF4}.png)
+![alt text](image.png)
 ### 5.1 Auth / IA (`/api/auth`)
 - `POST /register`
   - Registro en Cognito + insercion local en `users` con `password_md5`.

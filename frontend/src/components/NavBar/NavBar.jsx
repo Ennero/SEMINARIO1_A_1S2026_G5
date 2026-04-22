@@ -32,7 +32,7 @@ export default function NavBar() {
 
       {/* Navigation - Heuristic: Clear focus and hierarchy */}
       <div className="flex space-x-6 items-center">
-        <NavLink to="/" className={getNavClass}>Inicio</NavLink>
+        <NavLink to="/feed" className={getNavClass}>Inicio</NavLink>
         <NavLink to="/profile" className={getNavClass}>Perfil</NavLink>
         <NavLink to="/friends" className={getNavClass}>Amigos</NavLink>
         <NavLink to="/chats" className={getNavClass}>Chats</NavLink>
