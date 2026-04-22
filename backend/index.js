@@ -52,8 +52,16 @@ app.get('/', (req, res) => {
 });
 
 // Socket.io connection
+const onlineUsers = new Set(); // track online user IDs
+
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
+
+  socket.on('user_online', (userId) => {
+    socket.data.userId = userId;
+    onlineUsers.add(String(userId));
+    io.emit('online_users', Array.from(onlineUsers));
+  });
 
   socket.on('join_room', (room) => {
     socket.join(room);
@@ -66,6 +74,10 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
+    if (socket.data.userId) {
+      onlineUsers.delete(String(socket.data.userId));
+      io.emit('online_users', Array.from(onlineUsers));
+    }
   });
 });
 

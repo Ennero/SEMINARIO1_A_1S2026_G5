@@ -193,6 +193,12 @@ async function confirmRegistration(req, res) {
 
     await confirmUserSignUp({ email, confirmationCode });
 
+    // Mark user as confirmed in local DB
+    await pool.query(
+      'UPDATE users SET cognito_confirmed = TRUE WHERE email = $1',
+      [email]
+    );
+
     return res.status(200).json({
       message: 'User confirmed successfully. You can login now.',
     });

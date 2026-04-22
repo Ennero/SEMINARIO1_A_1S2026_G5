@@ -1,4 +1,4 @@
-# Manual Tecnico - Semi-Social
+# Manual Técnico — Semi-Social
 
 ## 1. Integrantes
 - 202302220 - Enner Esai Mendizabal Castro
@@ -8,183 +8,279 @@
 - 202300601 - Diego Alessandro Constanza Padilla
 - 202300636 - Jose Emilio Morales Castillo
 
-## 2. Resumen Arquitectonico
-La solucion sigue una arquitectura SPA + API REST + servicios AWS:
+---
 
-- Frontend React (Vite) en `frontend/`.
-- Backend Node.js + Express en `backend/`.
-- Persistencia PostgreSQL (dev: Docker, prod: RDS).
-- Imagenes en S3.
-- Autenticacion y confirmacion por correo con Cognito.
-- Login facial y etiquetas de imagen con Rekognition.
-- Traduccion con Amazon Translate.
-- Chatbot con Amazon Lex Runtime V2.
-- Socket.io para eventos de chat en tiempo real y API REST para persistencia.
+## 2. Resumen Arquitectónico
 
-## 3. Estructura principal de codigo
-- `backend/index.js`: arranque API, CORS, sockets y validacion de variables.
-- `backend/config/env.js`: validacion de variables obligatorias.
-- `backend/config/db.js`: pool compartido de PostgreSQL.
-- `backend/aws-services/`: clientes AWS SDK v3 modulares.
-- `backend/controllers/`: logica de negocio por modulo (`auth`, `posts`, `users`, `chat`).
-- `backend/routes/`: definicion REST.
-- `frontend/src/pages/`: vistas principales (`Login`, `Register`, `Feed`, `Profile`, `Friends`, `Chats`).
-- `frontend/src/services/`: clientes API centralizados.
-- `bruno/`: requests listos para probar endpoints.
+La solución sigue una arquitectura **SPA + API REST + Servicios AWS**:
+
+| Capa | Tecnología | Descripción |
+|---|---|---|
+| Frontend | React (Vite) + TailwindCSS | SPA en `frontend/` |
+| Backend | Node.js + Express | API REST en `backend/` |
+| Base de datos | PostgreSQL 15 | Docker local / RDS en producción |
+| Almacenamiento | Amazon S3 | Imágenes de perfil y posts |
+| Autenticación | Amazon Cognito | Registro, confirmación por email y login |
+| Reconocimiento | Amazon Rekognition | Login facial y etiquetado de imágenes |
+| Traducción | Amazon Translate | Traduce descripciones y comentarios independientemente |
+| Chatbot | Amazon Lex v2 | Bot informativo universitario |
+| Chat en tiempo real | Socket.io | Mensajes + presencia online en tiempo real |
+
+---
+
+## 3. Estructura Principal de Código
+
+```
+/
+├── frontend/
+│   ├── index.html             # Entry point HTML (favicon SS, lang=es)
+│   ├── public/
+│   │   └── favicon.svg        # Favicon SS con gradiente rojo-naranja
+│   └── src/
+│       ├── pages/
+│       │   ├── Feed/          # Feed de publicaciones (solo amigos)
+│       │   ├── Friends/       # Gestión de amigos + búsqueda en tiempo real
+│       │   ├── Chats/         # Chat en tiempo real con presencia online
+│       │   ├── Profile/       # Edición de perfil con validación de contraseña
+│       │   ├── Login/         # Login por credenciales y facial
+│       │   └── Register/      # Registro + confirmación Cognito
+│       └── services/
+│           ├── api.js          # Axios base
+│           ├── postsService.js # CRUD de posts + translate
+│           ├── usersService.js # Usuarios, amigos, solicitudes (soporte q=)
+│           └── chatService.js  # Salas de chat y mensajes
+├── backend/
+│   ├── index.js               # Arranque Express + Socket.io + presencia online
+│   ├── aws-services/          # Clientes AWS SDK v3 modulares
+│   ├── controllers/
+│   │   ├── authController.js  # Registro, login, Cognito confirm, Rekognition, Lex
+│   │   ├── postsController.js # CRUD posts + etiquetas Rekognition + translate
+│   │   ├── usersController.js # Usuarios (solo confirmados), amigos, búsqueda
+│   │   └── chatController.js  # Rooms, mensajes, presencia
+│   ├── routes/                # Definición REST
+│   └── database/
+│       └── schema.sql         # DDL (incluye cognito_confirmed BOOLEAN)
+└── docs/
+    ├── user-manual.md
+    └── tec-manual.md
+```
+
+---
 
 ## 4. Variables de Entorno
-Se usa un unico archivo `.env` en la raiz del repo.
 
-Variables criticas:
-- `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`
-- `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`
-- `COGNITO_USER_POOL_ID`, `COGNITO_CLIENT_ID`, `COGNITO_CLIENT_SECRET` (si aplica)
-- `S3_BUCKET_IMAGES` o `S3_BUCKET_NAME`
-- `LEX_BOT_ID`, `LEX_BOT_ALIAS_ID`, `LEX_LOCALE_ID`
-- `IMAGE_UPLOAD_API_URL` (opcional, recomendado para flujo estricto API Gateway + Lambda)
+Archivo único `.env` en la raíz del repositorio.
 
-Nota local:
-- Para ejecutar backend en host con DB en contenedor, usar `DB_HOST=localhost`.
-- En Docker Compose, backend usa `DB_HOST=db` automaticamente dentro de su servicio.
+| Variable | Descripción |
+|---|---|
+| `DB_HOST` | Host de PostgreSQL (`db` en Docker, `localhost` en host) |
+| `DB_PORT` | Puerto PostgreSQL (default: 5432) |
+| `DB_USER` | Usuario de BD |
+| `DB_PASSWORD` | Contraseña de BD |
+| `DB_NAME` | Nombre de la BD |
+| `AWS_REGION` | Región AWS (ej: `us-east-1`) |
+| `AWS_ACCESS_KEY_ID` | Clave de acceso AWS |
+| `AWS_SECRET_ACCESS_KEY` | Clave secreta AWS |
+| `COGNITO_USER_POOL_ID` | Pool ID de Cognito |
+| `COGNITO_CLIENT_ID` | Client ID de Cognito |
+| `COGNITO_CLIENT_SECRET` | Client Secret (si aplica) |
+| `S3_BUCKET_IMAGES` | Nombre del bucket S3 para imágenes |
+| `LEX_BOT_ID` | ID del bot Lex v2 |
+| `LEX_BOT_ALIAS_ID` | Alias del bot Lex |
+| `LEX_LOCALE_ID` | Locale del bot (ej: `es_419`) |
+| `CLIENT_URL` | URL del frontend (CORS origin) |
+| `FACIAL_MATCH_THRESHOLD` | Umbral de similitud facial (default: 90) |
 
-## 5. Endpoints Implementados  
-![alt text]({1A101736-7AB0-4CB7-970A-92CD8121BDF4}.png)
-![alt text](image.png)
+---
+
+## 5. Endpoints Implementados
+
 ### 5.1 Auth / IA (`/api/auth`)
-- `POST /register`
-  - Registro en Cognito + insercion local en `users` con `password_md5`.
-  - Carga foto de perfil a S3 (API Gateway si esta configurado, fallback a S3 directo).
-- `POST /confirm`
-  - Confirmacion de usuario Cognito por codigo.
-- `POST /login`
-  - Login por credenciales con Cognito.
-- `POST /login-facial`
-  - Login facial comparando imagen capturada contra foto de perfil en S3.
-- `POST /labels`
-  - Deteccion de etiquetas (URL o base64).
-- `POST /translate`
-  - Traduccion de texto (`es`, `en`, `it`, `pt`).
-- `POST /chatbot`
-  - Mensaje a bot Lex.
-- `POST /logout`
-  - Logout funcional a nivel frontend (limpieza de sesion local).
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| POST | `/register` | Registro Cognito + inserción local + upload foto S3 |
+| POST | `/confirm` | Confirma usuario Cognito por código. **Actualiza `cognito_confirmed = TRUE` en DB** |
+| POST | `/login` | Login por credenciales via Cognito |
+| POST | `/login-facial` | Login facial comparando contre S3 via Rekognition |
+| POST | `/labels` | Detección de etiquetas (URL o base64) |
+| POST | `/translate` | Traducción de texto genérica |
+| POST | `/chatbot` | Mensaje a Amazon Lex v2 |
+| POST | `/logout` | Logout frontend (limpia localStorage) |
 
 ### 5.2 Publicaciones (`/api/posts`)
-- `GET /`
-  - Lista publicaciones ordenadas por fecha, con tags y comentarios.
-  - Soporta query params: `tag`, `q`, `limit`.
-- `GET /:id`
-  - Obtiene detalle de publicacion.
-- `POST /`
-  - Crea publicacion (imagen obligatoria + descripcion opcional).
-  - Detecta etiquetas con Rekognition y persiste en `tags` + `post_tags`.
-- `PUT /:id`
-  - Actualiza descripcion de publicacion (requiere `userId`).
-- `DELETE /:id`
-  - Elimina publicacion propia (requiere `userId`).
-- `POST /:id/comments`
-  - Agrega comentario.
-- `POST /:id/translate`
-  - Traduce descripcion o comentario asociado al post.
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/` | Lista posts — **filtra por `userId` para mostrar solo amigos + propios** — soporta `tag`, `q`, `limit` |
+| GET | `/:id` | Detalle de publicación |
+| POST | `/` | Crea post con imagen (S3 + Rekognition automático) |
+| PUT | `/:id` | Actualiza descripción |
+| DELETE | `/:id` | Elimina post propio |
+| POST | `/:id/comments` | Agrega comentario |
+| POST | `/:id/translate` | Traduce descripción **o** un comentario específico (`commentId` en body) |
 
 ### 5.3 Usuarios / Amigos (`/api/users`)
-- `GET /`
-  - Lista usuarios (opcional `currentUserId` para excluirse).
-- `GET /:id`
-  - Perfil de usuario.
-- `PUT /:id`
-  - Actualiza perfil (nombre, dpi, username, password md5, foto).
-- `DELETE /:id`
-  - Elimina usuario.
-- `GET /:id/friends`
-  - Lista de amigos aceptados.
-- `GET /:id/friend-requests`
-  - Solicitudes pendientes recibidas.
-- `POST /:id/friend-requests`
-  - Enviar solicitud de amistad (`senderId` -> `receiverId`).
-- `PATCH /friend-requests/:requestId`
-  - Responder solicitud (`accept` o `reject`).
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/` | Lista usuarios **confirmados** (`cognito_confirmed = TRUE`). Soporta `q` para búsqueda |
+| GET | `/:id` | Perfil de usuario |
+| PUT | `/:id` | Actualiza perfil — **requiere contraseña actual para validar** |
+| DELETE | `/:id` | Elimina usuario |
+| GET | `/:id/friends` | Amigos aceptados |
+| GET | `/:id/friend-requests` | Solicitudes pendientes entrantes |
+| POST | `/:id/friend-requests` | Enviar solicitud (`senderId` → `receiverId`) |
+| PATCH | `/friend-requests/:requestId` | Responde solicitud (`accept`/`reject`) |
 
 ### 5.4 Chat (`/api/chat`)
-- `GET /rooms?userId=...`
-  - Lista salas donde participa el usuario.
-- `POST /direct-room`
-  - Obtiene o crea sala directa entre dos usuarios.
-- `GET /messages/:room?userId=...`
-  - Lista mensajes de sala.
-- `POST /messages`
-  - Persiste mensaje de chat.
 
-## 6. Flujo Funcional
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/rooms?userId=` | Salas del usuario |
+| POST | `/direct-room` | Obtiene o crea sala directa entre dos usuarios |
+| GET | `/messages/:room?userId=` | Mensajes de una sala |
+| POST | `/messages` | Persiste mensaje |
 
-### Registro
-1. Usuario ingresa datos + foto (archivo o webcam).
-2. Backend sube imagen a S3.
-3. Backend crea usuario en Cognito.
-4. Backend guarda usuario en PostgreSQL con `password_md5`.
-5. Usuario confirma por codigo en correo.
+---
 
-### Login Credenciales
-1. Frontend envia `identifier + password`.
-2. Backend autentica en Cognito.
-3. Backend devuelve usuario local + tokens Cognito.
+## 6. Flujo Funcional Detallado
 
-### Login Facial
-1. Frontend captura foto webcam.
-2. Backend compara rostro con imagen de perfil en S3 via Rekognition.
-3. Si similitud supera umbral (`FACIAL_MATCH_THRESHOLD`), permite login.
+### Registro y Confirmación
+1. Usuario envía datos + foto → backend sube imagen a S3, crea usuario en Cognito, inserta en `users` con `cognito_confirmed = FALSE`.
+2. Cognito envía código al correo del usuario.
+3. Usuario ingresa el código en `/confirm` → backend confirma en Cognito y **actualiza `cognito_confirmed = TRUE` en PostgreSQL**.
+4. A partir de ese momento el usuario aparece en "Nuevos Usuarios" para otros.
 
-### Publicaciones
-1. Usuario crea post con imagen.
-2. Imagen se almacena en S3.
-3. Rekognition detecta etiquetas.
-4. Post, etiquetas y comentarios se exponen al feed.
+### Filtrado del Feed por Amigos
+- `GET /api/posts?userId=X` ejecuta un subquery sobre `friendships` para incluir solo posts del usuario `X` y sus amigos con `status = 'accepted'`.
 
-## 7. Coleccion Bruno
+### Traducción Independiente (descripción vs comentario)
+- `POST /api/posts/:id/translate` con solo `{ targetLanguageCode }` traduce la **descripción**.
+- `POST /api/posts/:id/translate` con `{ targetLanguageCode, commentId }` traduce ese **comentario específico**.
+- El frontend monta un componente `DescriptionTranslate` y un `CommentTranslate` por separado, cada uno con su propio estado `[activeLang, translated, loading]`.
+
+### Presencia Online (Socket.io)
+- Al cargar `Chats.jsx`, el frontend emite `user_online(userId)`.
+- El backend registra el `userId` en un `Set` en memoria y emite `online_users([...ids])` a todos los clientes.
+- Al desconectarse el socket, el backend elimina el usuario del Set y notifica a todos.
+- Los indicadores de "En línea" / "Desconectado" se actualizan en tiempo real.
+
+### Búsqueda de Amigos
+- El componente `Friends.jsx` usa un debounce de 350ms para llamar a `GET /api/users?currentUserId=X&q=texto`.
+- El backend busca `LOWER(username) LIKE %q%` OR `LOWER(full_name) LIKE %q%`.
+
+---
+
+## 7. Schema de Base de Datos (principales tablas)
+
+```sql
+-- Usuarios (solo cognito_confirmed = TRUE son visibles en "Nuevos Usuarios")
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  username VARCHAR(50) UNIQUE NOT NULL,
+  full_name VARCHAR(100) NOT NULL,
+  email VARCHAR(100) UNIQUE NOT NULL,
+  cognito_sub VARCHAR(255) UNIQUE,
+  cognito_confirmed BOOLEAN NOT NULL DEFAULT FALSE,
+  dpi VARCHAR(20) UNIQUE NOT NULL,
+  password_md5 CHAR(32) NOT NULL,
+  profile_image_url TEXT NOT NULL,
+  face_image_url TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Amistades
+CREATE TABLE friendships (
+  id SERIAL PRIMARY KEY,
+  sender_id INT REFERENCES users(id),
+  receiver_id INT REFERENCES users(id),
+  status VARCHAR(20) DEFAULT 'pending', -- pending | accepted | rejected
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  responded_at TIMESTAMP
+);
+
+-- Posts, Tags, Post_Tags, Comments (omitidos por brevedad — ver schema.sql completo)
+```
+
+---
+
+## 8. Decisiones Arquitectónicas
+
+1. **Controladores por dominio** — `auth`, `posts`, `users`, `chat` — para aislar lógica de rutas.
+2. **Clientes AWS v3 modulares** — cada servicio AWS en su propio archivo en `aws-services/`.
+3. **Queries parametrizadas** con `pg` para prevenir SQL injection.
+4. **`cognito_confirmed`** — columna booleana en `users`, actualizada al confirmar el código. Evita depender de Cognito en cada petición de listado.
+5. **Presencia en memoria** — `Set` en `index.js` para usuarios online. Simple y sin latencia extra de BD. Al reiniciar el servidor el Set se vacía; los clientes reenvían `user_online` al reconectar el socket.
+6. **Traducción granular** — componentes React independientes por descripción y por comentario para evitar rerender global y permitir estados de carga/activo individuales.
+7. **Búsqueda con debounce** — 350ms de espera antes de disparar la petición al backend para evitar carga innecesaria.
+8. **CORS con PATCH** — `methods: ['GET','POST','PUT','PATCH','DELETE']` — necesario para el endpoint `PATCH /friend-requests/:id`.
+
+---
+
+## 9. Colección Bruno
+
 La carpeta `bruno/` incluye requests para probar:
 - Health
-- Register / Login
-- Create/List posts
-- Friend request
+- Register / Confirm / Login / Login Facial
+- Create/List posts (con `userId` para filtrar amigos)
+- Translate post / Translate comment
+- Friend request (send / answer)
 - Direct room + send message
-- Translate + Chatbot
+- Chatbot
 
-Archivo de entorno recomendado: `bruno/environments.local.json`.
+Entorno recomendado: `bruno/environments.local.json`.
 
-## 8. Decisiones Arquitectonicas
-1. Uso de controladores por dominio para aislar logica de rutas.
-2. Uso de clientes AWS v3 modulares y reutilizables.
-3. Queries parametrizadas con `pg` para evitar SQL injection.
-4. Persistencia de chat en PostgreSQL y uso de Socket.io para eventos realtime.
-5. Unificacion de configuracion en un solo `.env` raiz.
-6. Fallback de subida S3 directa solo para continuidad local; en despliegue final se recomienda forzar API Gateway + Lambda.
+---
 
-## 9. Relacion con YAML de API Gateway
-En este repo no se versionaron YAML de API Gateway aun. Si se agregan, sirven para:
-- Definir infraestructura de endpoints cloud como codigo (IaC).
-- Reproducir despliegues entre cuentas/entornos.
-- Auditar cambios de rutas y autorizacion en API Gateway.
+## 10. Lista de Pendientes Cloud para Entrega Final
 
-## 10. Lista de Pendientes Cloud para entrega final
-- Despliegue frontend en bucket web publico `Proyecto-Web-G#`.
-- Backend desplegado en 2 EC2 detras de ALB.
-- Base de datos migrada a RDS.
-- Endpoint de subida de imagen obligatorio por API Gateway + Lambda, sin fallback local.
-- Evidencias en capturas: S3, EC2, RDS, Lambda, Cognito, Lex, ALB.
+- [ ] Despliegue frontend en bucket S3 `Proyecto-Web-G5` (static website hosting).
+- [ ] Backend en 2 instancias EC2 detrás de ALB.
+- [ ] Base de datos migrada a RDS (actualizar `DB_HOST`, `DB_USER`, `DB_PASSWORD`).
+- [ ] Endpoint de subida de imagen via API Gateway + Lambda.
+- [ ] Capturas de evidencia: S3, EC2, RDS, Lambda, Cognito, Lex, Rekognition, ALB.
+- [ ] Backend en Python (FastAPI/Flask) replicando endpoints de Node.js.
 
-## 11. Comandos de Ejecucion
-### Local (host)
-- Backend: `cd backend && npm run dev`
-- Frontend: `cd frontend && npm run dev`
-- DB: `docker compose up -d db`
+---
 
-### Stack Docker completo
-- `docker compose up -d --build`
+## 11. Comandos de Ejecución
 
-## 12. Estado actual del proyecto
-- Auth/registro/login/login facial: implementado.
-- Publicaciones/comentarios/tags/traduccion: implementado.
-- Usuarios/amigos/solicitudes: implementado.
-- Chat con persistencia: implementado.
-- Frontend conectado a APIs principales: implementado.
-- Pendiente de cierre de entrega: despliegue cloud final y evidencias del enunciado.
+### Stack Docker completo (recomendado)
+```bash
+docker compose down -v          # Detiene y elimina volúmenes (DB limpia)
+docker compose up -d --build    # Construye y levanta todos los contenedores
+```
+
+### Local (desarrollo)
+```bash
+# Levantar solo la BD en Docker
+docker compose up -d db
+
+# Backend
+cd backend && npm run dev
+
+# Frontend
+cd frontend && npm run dev
+```
+
+> El frontend queda disponible en `http://localhost:3000` y el backend en `http://localhost:5000`.
+
+---
+
+## 12. Estado Actual del Proyecto
+
+| Módulo | Estado |
+|---|---|
+| Auth (registro / login / facial) | ✅ Implementado |
+| Confirmación Cognito + marcado en DB | ✅ Implementado |
+| Publicaciones / comentarios / tags Rekognition | ✅ Implementado |
+| Filtro feed solo amigos | ✅ Implementado |
+| Traducción descripción (independiente) | ✅ Implementado |
+| Traducción comentarios (independiente por comentario) | ✅ Implementado |
+| Gestión amigos + búsqueda en tiempo real | ✅ Implementado |
+| Solicitudes aceptar/rechazar (CORS PATCH fix) | ✅ Implementado |
+| Chat en tiempo real (Socket.io) | ✅ Implementado |
+| Presencia online real (En línea / Desconectado) | ✅ Implementado |
+| Favicon SS personalizado | ✅ Implementado |
+| Despliegue cloud final | ⏳ Pendiente |

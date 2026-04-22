@@ -1,6 +1,6 @@
-# Manual de Usuario - Semi-Social
+# Manual de Usuario — Semi-Social
 
-Bienvenido a la red social universitaria **Semi-Social**, un espacio interactivo, escalable y con funciones impulsadas por Inteligencia Artificial de AWS. En este manual, te mostraremos paso a paso cómo utilizar las funcionalidades de la plataforma.
+Bienvenido a la red social universitaria **Semi-Social**, una plataforma interactiva y escalable impulsada por servicios de Inteligencia Artificial de AWS. En este manual encontrarás, paso a paso, cómo utilizar todas las funcionalidades de la plataforma.
 
 ---
 
@@ -9,103 +9,125 @@ Bienvenido a la red social universitaria **Semi-Social**, un espacio interactivo
 Para poder interactuar con la plataforma, primero debes crear una cuenta.
 
 ### Pasos:
-1. Accede a la página principal de la plataforma.
+1. Accede a la página principal de la plataforma (`localhost:3000` en entorno local).
 2. Selecciona la opción **Registrarse**.
 3. Rellena el formulario con tus datos:
-   - Nombre completo
-   - Correo electrónico
-   - DPI (Documento Personal de Identidad)
-   - Contraseña segura
-4. Tómate una foto o sube una imagen para tu foto de perfil. **Esta foto será utilizada para tu inicio de sesión facial.**
-5. Una vez enviados los datos, revisa tu correo electrónico para verificar el código enviado por la plataforma.
+   - **Nombre completo**
+   - **Correo electrónico** (deberá ser válido y accesible)
+   - **DPI** (13 dígitos, Documento Personal de Identidad)
+   - **Contraseña segura** (mínimo 8 caracteres, debe incluir mayúscula, número y carácter especial)
+4. Tómate una foto o sube una imagen para tu foto de perfil. **Esta foto será utilizada también para tu inicio de sesión facial.**
+5. Haz clic en **Crear cuenta**.
+6. Recibirás un **código de verificación** en tu correo. Ingrésalo en la pantalla de confirmación que aparecerá a continuación.
 
-![[Inserta aquí la captura de pantalla: Formulario de Registro]]()
+> ⚠️ **Importante:** Tu cuenta solo quedará activa y visible para otros usuarios **después** de confirmar el código de tu correo. Si no confirmas, no aparecerás listado en la plataforma.
 
 ---
 
 ## 2. Iniciar Sesión
 
-Puedes acceder a tu cuenta utilizando tus credenciales clásicas o, de manera rápida, utilizando el inicio de sesión facial.
+Puedes acceder a tu cuenta utilizando credenciales clásicas o, de manera rápida, mediante reconocimiento facial.
 
 ### Iniciar sesión con Credenciales:
 1. Dirígete a la pestaña de **Login**.
-2. Ingresa tu correo electrónico y tu contraseña.
-3. Haz clic en el botón de **Iniciar Sesión**.
+2. Ingresa tu correo electrónico (o nombre de usuario) y tu contraseña.
+3. Haz clic en **Iniciar Sesión**.
 
 ### Iniciar sesión con Reconocimiento Facial (Face Login):
 1. Selecciona la opción **Login Facial** en la pantalla de inicio.
 2. Permite el acceso a tu cámara web.
-3. Tómate una foto. El sistema usará Amazon Rekognition para comparar tu rostro con tu foto de perfil. ¡Si coinciden, entrarás inmediatamente!
-
-![[Inserta aquí la captura de pantalla: Inicio de sesión normal / facial]]()
+3. Tómate una foto. El sistema usará **Amazon Rekognition** para comparar tu rostro con tu foto de perfil. Si coincide (por encima del umbral de similitud configurado), accederás inmediatamente.
 
 ---
 
-## 3. Navegando por el Feed Principal (Publicaciones)
+## 3. Feed Principal (Publicaciones)
 
-El **Feed** es el corazón de Semi-Social. Aquí podrás interactuar con tus amigos y compartir momentos.
+El **Feed** es el corazón de Semi-Social. Aquí verás únicamente las publicaciones de **ti mismo y de tus amigos confirmados**.
 
-### Crear una publicación
-1. En la parte superior del Feed, encontrarás un panel para crear publicaciones.
+### Crear una publicación:
+1. En la parte superior del Feed, encontrarás el panel **"Publicaciones"**.
 2. Escribe una descripción (opcional).
 3. Selecciona la imagen que deseas publicar (obligatorio).
-4. Haz clic en **Publicar**.
+4. Haz clic en **Crear publicación**.
 
-![[Inserta aquí la captura de pantalla: Crear una nueva publicación en el Feed]]()
+> Las imágenes son analizadas por **Amazon Rekognition** al publicarlas. Se detectan etiquetas automáticamente (ej: "Persona", "Vehículo", "Naturaleza") que aparecen como tags en tu publicación.
 
-### Interacción (Filtros y Comentarios)
-- **Filtros Inteligentes:** Al lado derecho del Feed, verás un listado de etiquetas (ej: "Persona", "Perro", "Edificio"). Estas etiquetas son detectadas automáticamente por la IA al subir fotos. Puedes dar clic sobre ellas para filtrar y ver únicamente las publicaciones que contengan esa categoría.
-- **Comentar:** Abajo de cada publicación, puedes escribir y enviar comentarios a las fotos de tus amigos.
+### Filtros inteligentes:
+- **Buscar por descripción:** Usa el campo de texto para buscar publicaciones por su descripción.
+- **Filtrar por etiqueta:** Selecciona una etiqueta del desplegable y haz clic en **Filtrar** para ver únicamente esas publicaciones.
 
-![[Inserta aquí la captura de pantalla: Feed de publicaciones con filtros laterales aplicados]]()
+### Comentar:
+- Abajo de cada publicación, escribe tu comentario y presiona **Enviar**.
 
 ---
 
 ## 4. Traducción de Contenidos
 
-¿Un amigo escribió un comentario o una descripción en otro idioma?
+Puedes traducir la descripción de una publicación **y** cada comentario de forma completamente independiente.
 
-1. En cada publicación o comentario, encontrarás un botón de **Traducir**.
-2. Al presionarlo, la plataforma utilizará Amazon Translate para convertir ese texto al español o viceversa.
+### Traducir la descripción de una publicación:
+- En la cabecera de cada publicación (junto al nombre de usuario), verás los botones **🇺🇸 EN**, **🇮🇹 IT**, **🇧🇷 PT**.
+- Haz clic en un idioma para mostrar la traducción debajo de la descripción original.
+- Haz clic nuevamente en el mismo botón para ocultar la traducción.
 
-![[Inserta aquí la captura de pantalla: Uso del botón traducir en un post o comentario]]()
+### Traducir un comentario individual:
+- Dentro de cada comentario, verás pequeños botones **EN / IT / PT**.
+- Son completamente independientes: puedes traducir el comentario de una persona sin que eso afecte a los demás comentarios ni a la descripción del post.
+- Haz clic en el idioma deseado → aparece la traducción en naranja debajo del comentario.
+- Haz clic de nuevo para ocultarla.
+
+> La traducción utiliza **Amazon Translate** con detección automática del idioma fuente.
 
 ---
 
 ## 5. Gestión de Amigos
 
-Para ver publicaciones y enviar mensajes a otros usuarios, primero debes ser su amigo.
+Para ver las publicaciones de otros usuarios y enviarles mensajes, primero deben ser tus amigos.
 
-1. Dirígete a la pestaña **Amigos** en la barra de navegación superior.
-2. En la sección **Sugerencias / Buscar**, podrás ver la lista de todos los usuarios registrados.
-3. Envía una solicitud de amistad.
-4. En el panel de **Solicitudes Entrantes**, puedes Aceptar o Rechazar invitaciones de otras personas.
+> Solo aparecen como **"Nuevos Usuarios"** aquellas personas que ya confirmaron su correo electrónico.
 
-![[Inserta aquí la captura de pantalla: Panel de solicitudes de amistad]]()
+### Agregar amigos:
+1. Dirígete a la pestaña **Amigos** en la barra de navegación.
+2. En la barra de búsqueda, escribe el nombre o usuario de la persona (búsqueda en tiempo real, resultado instantáneo).
+3. Haz clic en **Agregar** junto a la persona deseada.
+
+### Estados del botón en "Nuevos Usuarios":
+| Estado | Significado |
+|---|---|
+| **Agregar** | No existe relación previa. Envía solicitud. |
+| **Solicitud enviada** | Tú enviaste la solicitud, esperando respuesta. |
+| **Aceptar solicitud** | Esa persona te envió una solicitud; puedes aceptarla. |
+
+### Solicitudes Pendientes:
+- En el panel "Solicitudes Pendientes" verás a las personas que te enviaron solicitudes.
+- Usa el botón ✓ (verde) para **aceptar** o ✗ (rojo) para **rechazar**.
 
 ---
 
 ## 6. Chat en Tiempo Real
 
-Puedes comunicarte instantáneamente con cualquiera de tus amigos utilizando la funcionalidad de Chat.
+Puedes comunicarte instantáneamente con tus **amigos aceptados** mediante el módulo de Chat.
 
-1. Navega a la pestaña de **Chats**.
-2. A la izquierda, verás tu lista de amigos.
-3. Selecciona a un amigo para abrir la sala de conversación.
-4. Puedes enviar mensajes que llegarán instantáneamente gracias a la tecnología de WebSockets, sin necesidad de recargar la página.
+1. Navega a la pestaña **Chats**.
+2. A la izquierda verás tu historial de conversaciones activas.
+3. Para iniciar un **nuevo chat**, haz clic en el botón **+** (esquina superior derecha del panel lateral).
+4. Se abrirá un modal con tu lista de amigos. Selecciona uno para iniciar la conversación.
+5. Los mensajes llegan en tiempo real gracias a **WebSockets (Socket.io)**.
 
-![[Inserta aquí la captura de pantalla: Conversación activa en la pantalla de Chats]]()
+### Estado de conexión:
+- 🟢 **En línea** — El amigo está actualmente en la aplicación.
+- ⚫ **Desconectado** — El amigo no está navegando la plataforma en este momento.
 
 ---
 
 ## 7. Chatbot Informativo (Amazon Lex)
 
-Si tienes dudas acerca de la Facultad de Ingeniería o sobre cómo usar la red social, puedes consultarlo con nuestro bot inteligente.
+Si tienes dudas sobre la Facultad de Ingeniería o cómo usar la plataforma:
 
-1. En la esquina inferior derecha de la pantalla (o desde el Feed), encontrarás un ícono flotante de Chatbot.
-2. Al abrirlo, podrás enviarle mensajes y el Bot te responderá dinámicamente con información útil y horarios frecuentes.
+1. Busca el ícono flotante de chat en la **esquina inferior derecha** de la pantalla.
+2. Escríbele al bot y responderá con información relevante sobre horarios, servicios y más.
 
-![[Inserta aquí la captura de pantalla: Interacción con el Chatbot de Amazon Lex]]()
+> El chatbot está impulsado por **Amazon Lex v2**.
 
 ---
 
@@ -113,13 +135,15 @@ Si tienes dudas acerca de la Facultad de Ingeniería o sobre cómo usar la red s
 
 Para actualizar tus datos personales:
 
-1. Ve a la sección **Mi Perfil**.
-2. Aquí podrás cambiar tu foto de perfil, tu nombre completo o DPI.
-3. Para confirmar cualquier cambio, el sistema te pedirá ingresar tu contraseña por motivos de seguridad.
+1. Ve a la sección **Perfil** en la barra de navegación.
+2. Haz clic en **Editar Perfil**.
+3. Modifica los campos deseados: foto de perfil, nombre completo, DPI o nombre de usuario.
+4. **Debes ingresar tu contraseña actual** para confirmar cualquier cambio (medida de seguridad).
+5. Haz clic en **Guardar cambios**.
 
-![[Inserta aquí la captura de pantalla: Pantalla de Edición de Perfil]]()
+> Al entrar en modo edición, verás una previsualización de tu foto de perfil actual como referencia.
 
 ---
 
 ## Soporte Técnico
-Si necesitas credenciales de prueba o presentar un problema, contacta a los administradores del sistema. (Recuerda que para entornos locales existen credenciales por defecto ubicadas en la sección de desarrollador en `bruno/environments.local.json`).
+Si necesitas asistencia o credenciales de prueba, contacta a los administradores del sistema. Para entornos locales, las configuraciones base se encuentran en `bruno/environments.local.json`.

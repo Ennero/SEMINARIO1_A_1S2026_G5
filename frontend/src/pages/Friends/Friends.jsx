@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Toast from '../../components/Toast/Toast';
 import { getSessionUser } from '../../services/session';
 import {
@@ -19,6 +19,7 @@ export default function Friends() {
   const [friends, setFriends] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const debounceRef = useRef(null);
 
   const showToast = (message, type = 'success') => {
     setToastMessage(message);
@@ -29,24 +30,25 @@ export default function Friends() {
     }, 3000);
   };
 
-  const loadData = async () => {
+  const loadData = useCallback(async (q = '') => {
     if (!sessionUser?.id) return;
     setLoading(true);
 
     try {
       const [usersData, requestsData, friendsData] = await Promise.all([
-        fetchUsers(sessionUser.id),
+        fetchUsers(sessionUser.id, q),
         fetchIncomingRequests(sessionUser.id),
         fetchFriends(sessionUser.id),
       ]);
 
-      // Sort by creation date or id descending to get the latest registered users
       const allUsers = usersData.users || [];
       const validRecommendations = allUsers.filter(u => {
-        if (u.friendshipStatus === 'accepted') return false; // Ya son amigos
+        if (u.friendshipStatus === 'accepted') return false;
         return true;
       });
-      const sortedRecs = validRecommendations.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+      const sortedRecs = validRecommendations.sort(
+        (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+      );
 
       setRecommendations(sortedRecs);
       setRequests(requestsData.requests || []);
@@ -56,29 +58,35 @@ export default function Friends() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [sessionUser?.id]);
 
   useEffect(() => {
     loadData();
-  }, [sessionUser?.id]);
+  }, [loadData]);
 
-  const filterList = (list) => {
-    if (!searchQuery) return list;
-    const query = searchQuery.toLowerCase();
-    return list.filter(item => 
-      (item.username || '').toLowerCase().includes(query) || 
-      (item.full_name || item.fullName || '').toLowerCase().includes(query)
-    );
+  const onSearchChange = (e) => {
+    const val = e.target.value;
+    setSearchQuery(val);
+
+    // Debounce backend search
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      loadData(val.trim());
+    }, 350);
   };
 
-  const filteredFriends = filterList(friends);
-  const getFilteredRecommendations = () => {
-    if (searchQuery) {
-      return filterList(recommendations);
-    }
-    return recommendations.slice(0, 3);
-  };
-  const filteredRecommendations = getFilteredRecommendations();
+  // Only slice when not searching — backend already filters when q is sent
+  const displayedRecommendations = searchQuery.trim()
+    ? recommendations
+    : recommendations.slice(0, 3);
+
+  // Friends are always filtered client-side from the already-loaded list
+  const filteredFriends = searchQuery.trim()
+    ? friends.filter(f =>
+        (f.username || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (f.full_name || '').toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : friends;
 
   return (
     <div className="min-h-screen w-full pt-24 pb-16 px-6 bg-slate-900 flex flex-col items-center relative overflow-hidden font-sans">
@@ -90,24 +98,30 @@ export default function Friends() {
       <Toast message={toastMessage} isVisible={toastVisible} type={toastType} onClose={() => setToastVisible(false)} />
 
       <div className="relative z-10 text-center mb-8 animate-fade-in-up max-w-3xl">
-         <h1 className="text-5xl md:text-6xl font-black text-white mb-4 tracking-tight">
-           Amigos
-         </h1>
-         <p className="text-lg md:text-xl text-slate-400 font-medium leading-relaxed tracking-wide">
-           Gestiona solicitudes y conecta con tu red.
-         </p>
+        <h1 className="text-5xl md:text-6xl font-black text-white mb-4 tracking-tight">
+          Amigos
+        </h1>
+        <p className="text-lg md:text-xl text-slate-400 font-medium leading-relaxed tracking-wide">
+          Gestiona solicitudes y conecta con tu red.
+        </p>
       </div>
 
       <div className="relative z-10 w-full max-w-5xl mb-8 animate-fade-in-up">
         <div className="bg-slate-800/80 backdrop-blur-xl rounded-2xl border border-slate-700 shadow-xl p-4 flex items-center">
-          <svg className="w-6 h-6 text-slate-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-          <input 
-            type="text" 
-            placeholder="Buscar amigos por nombre o usuario..." 
+          <svg className="w-6 h-6 text-slate-400 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+          <input
+            type="text"
+            placeholder="Buscar amigos por nombre o usuario..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={onSearchChange}
             className="flex-1 bg-transparent border-none text-white focus:outline-none placeholder-slate-500 text-sm md:text-base"
           />
+          {loading && (
+            <svg className="w-5 h-5 text-slate-400 animate-spin flex-shrink-0" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+            </svg>
+          )}
         </div>
       </div>
 
@@ -119,31 +133,41 @@ export default function Friends() {
           </h2>
           <div className="space-y-3">
             {requests.map((req, i) => (
-              <div key={`req-${req.id}`} className="flex items-center justify-between bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 transition-all duration-300 group hover:border-slate-600 hover:bg-slate-800" style={{animationDelay: `${(i * 0.1) + 0.3}s`}}>
+              <div key={`req-${req.id}`} className="flex items-center justify-between bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 transition-all duration-300 group hover:border-slate-600 hover:bg-slate-800" style={{ animationDelay: `${(i * 0.1) + 0.3}s` }}>
                 <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-slate-600 to-slate-700 text-white grid place-items-center font-black shadow-inner">{String(req.username || 'U').charAt(0).toUpperCase()}</div>
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-slate-600 to-slate-700 text-white grid place-items-center font-black shadow-inner">
+                    {String(req.username || 'U').charAt(0).toUpperCase()}
+                  </div>
                   <div>
                     <h3 className="text-sm font-bold text-white tracking-wide">{req.username}</h3>
                     <p className="text-xs text-slate-400 font-medium">{req.full_name}</p>
                   </div>
                 </div>
                 <div className="flex space-x-2">
-                  <button 
+                  <button
                     onClick={async () => {
-                      await answerFriendRequest(req.id, sessionUser.id, 'accept');
-                      showToast(`${req.username} ahora es tu amigo`, 'success');
-                      await loadData();
+                      try {
+                        await answerFriendRequest(req.id, sessionUser.id, 'accept');
+                        showToast(`${req.username} ahora es tu amigo`, 'success');
+                        await loadData(searchQuery.trim());
+                      } catch (err) {
+                        showToast(err.message || 'Error al aceptar', 'error');
+                      }
                     }}
                     className="p-2 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white rounded-xl transition-all border border-emerald-500/20"
                     title="Aceptar"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" /></svg>
                   </button>
-                  <button 
+                  <button
                     onClick={async () => {
-                      await answerFriendRequest(req.id, sessionUser.id, 'reject');
-                      showToast(`${req.username} fue rechazado`, 'error');
-                      await loadData();
+                      try {
+                        await answerFriendRequest(req.id, sessionUser.id, 'reject');
+                        showToast(`Solicitud de ${req.username} rechazada`, 'error');
+                        await loadData(searchQuery.trim());
+                      } catch (err) {
+                        showToast(err.message || 'Error al rechazar', 'error');
+                      }
                     }}
                     className="p-2 bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white rounded-xl transition-all border border-rose-500/20"
                     title="Rechazar"
@@ -162,59 +186,70 @@ export default function Friends() {
             Nuevos Usuarios
           </h2>
           <div className="space-y-3">
-            {filteredRecommendations.map((rec, i) => {
+            {displayedRecommendations.map((rec, i) => {
               const myId = Number(sessionUser?.id);
               const isPendingSentByMe = rec.friendshipStatus === 'pending' && Number(rec.friendshipSenderId) === myId;
               const isPendingSentByThem = rec.friendshipStatus === 'pending' && Number(rec.friendshipSenderId) !== myId;
 
               return (
-              <div key={`rec-${rec.id}`} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-2 bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 hover:border-slate-600 hover:bg-slate-800 transition-all duration-300 group" style={{animationDelay: `${(i * 0.1) + 0.5}s`}}>
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-600 to-orange-500 text-white grid place-items-center font-black shadow-lg">{String(rec.username || 'U').charAt(0).toUpperCase()}</div>
-                  <div>
-                    <h3 className="text-sm font-bold text-white tracking-wide">{rec.username}</h3>
-                    <p className="text-xs text-slate-400 font-medium">{rec.fullName}</p>
+                <div key={`rec-${rec.id}`} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-2 bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 hover:border-slate-600 hover:bg-slate-800 transition-all duration-300 group" style={{ animationDelay: `${(i * 0.1) + 0.5}s` }}>
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-600 to-orange-500 text-white grid place-items-center font-black shadow-lg">
+                      {String(rec.username || 'U').charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-white tracking-wide">{rec.username}</h3>
+                      <p className="text-xs text-slate-400 font-medium">{rec.fullName}</p>
+                    </div>
                   </div>
-                </div>
-                {isPendingSentByMe ? (
-                  <button disabled className="w-full sm:w-auto px-4 py-2 bg-slate-700/50 text-slate-400 font-bold text-xs rounded-xl shadow-md border border-slate-600 cursor-not-allowed transition-all">
-                    Solicitud enviada
-                  </button>
-                ) : isPendingSentByThem ? (
-                  <button 
-                    onClick={async () => {
-                      const reqItem = requests.find(r => Number(r.sender_id) === Number(rec.id));
-                      if (reqItem) {
-                        try {
-                          await answerFriendRequest(reqItem.id, sessionUser.id, 'accept');
-                          showToast(`Solicitud aceptada de ${rec.username}`, 'success');
-                          await loadData();
-                        } catch (err) {
-                          showToast(err.message || 'Error al aceptar solicitud', 'error');
+                  {isPendingSentByMe ? (
+                    <button disabled className="w-full sm:w-auto px-4 py-2 bg-slate-700/50 text-slate-400 font-bold text-xs rounded-xl shadow-md border border-slate-600 cursor-not-allowed transition-all">
+                      Solicitud enviada
+                    </button>
+                  ) : isPendingSentByThem ? (
+                    <button
+                      onClick={async () => {
+                        const reqItem = requests.find(r => Number(r.sender_id) === Number(rec.id));
+                        if (reqItem) {
+                          try {
+                            await answerFriendRequest(reqItem.id, sessionUser.id, 'accept');
+                            showToast(`Solicitud aceptada de ${rec.username}`, 'success');
+                            await loadData(searchQuery.trim());
+                          } catch (err) {
+                            showToast(err.message || 'Error al aceptar solicitud', 'error');
+                          }
+                        } else {
+                          showToast('Error: No se encontró la solicitud', 'error');
                         }
-                      } else {
-                        showToast('Error: No se encontró la solicitud', 'error');
-                      }
-                    }}
-                    className="w-full sm:w-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-md border border-emerald-500 transition-all"
-                  >
-                    Aceptar solicitud
-                  </button>
-                ) : (
-                  <button 
-                    onClick={async () => {
-                      await sendFriendRequest(rec.id, sessionUser.id);
-                      showToast(`Solicitud enviada a ${rec.username}`, 'success');
-                      await loadData();
-                    }}
-                    className="w-full sm:w-auto px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs rounded-xl shadow-md border border-slate-600 transition-all"
-                  >
-                    Agregar
-                  </button>
-                )}
-              </div>
-            )})}
-            {!loading && filteredRecommendations.length === 0 ? <p className="text-sm text-slate-500 italic px-2">No se encontraron sugerencias.</p> : null}
+                      }}
+                      className="w-full sm:w-auto px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-md border border-emerald-500 transition-all"
+                    >
+                      Aceptar solicitud
+                    </button>
+                  ) : (
+                    <button
+                      onClick={async () => {
+                        try {
+                          await sendFriendRequest(rec.id, sessionUser.id);
+                          showToast(`Solicitud enviada a ${rec.username}`, 'success');
+                          await loadData(searchQuery.trim());
+                        } catch (err) {
+                          showToast(err.message || 'Error al enviar solicitud', 'error');
+                        }
+                      }}
+                      className="w-full sm:w-auto px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs rounded-xl shadow-md border border-slate-600 transition-all"
+                    >
+                      Agregar
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+            {!loading && displayedRecommendations.length === 0 ? (
+              <p className="text-sm text-slate-500 italic px-2">
+                {searchQuery.trim() ? 'No se encontraron usuarios.' : 'No hay nuevos usuarios.'}
+              </p>
+            ) : null}
           </div>
         </div>
 
@@ -225,7 +260,9 @@ export default function Friends() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredFriends.map((entry) => (
               <div key={`friend-${entry.id}`} className="flex items-center gap-4 bg-slate-900/40 border border-slate-700/50 hover:border-slate-600 rounded-2xl p-4 transition-all">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-sky-600 to-blue-500 text-white grid place-items-center text-sm font-black shadow-lg">{String(entry.username || 'U').charAt(0).toUpperCase()}</div>
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-sky-600 to-blue-500 text-white grid place-items-center text-sm font-black shadow-lg">
+                  {String(entry.username || 'U').charAt(0).toUpperCase()}
+                </div>
                 <div>
                   <p className="text-sm font-bold text-white tracking-wide">{entry.username}</p>
                   <p className="text-xs text-slate-400 font-medium">{entry.full_name}</p>
@@ -240,4 +277,3 @@ export default function Friends() {
     </div>
   );
 }
-

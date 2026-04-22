@@ -18,11 +18,26 @@ export default function Chats() {
   const [friendsList, setFriendsList] = useState([]);
   const [messages, setMessages] = useState([]);
   const [chatRooms, setChatRooms] = useState([]);
+  const [onlineUserIds, setOnlineUserIds] = useState(new Set());
   const [roomId, setRoomId] = useState(null);
   const [draft, setDraft] = useState('');
   const [error, setError] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const messagesEndRef = useRef(null);
+
+  // Register this user as online and listen for presence updates
+  useEffect(() => {
+    if (!sessionUser?.id) return;
+    socket.emit('user_online', sessionUser.id);
+
+    const handleOnlineUsers = (ids) => {
+      setOnlineUserIds(new Set(ids.map(String)));
+    };
+    socket.on('online_users', handleOnlineUsers);
+    return () => {
+      socket.off('online_users', handleOnlineUsers);
+    };
+  }, [sessionUser?.id]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -187,8 +202,17 @@ export default function Chats() {
                   <div>
                     <h2 className="text-base font-bold text-white tracking-wide">{activeFriend.username}</h2>
                     <div className="flex items-center space-x-1.5 mt-0.5">
-                      <div className="w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.8)]"></div>
-                      <p className="text-[11px] text-emerald-400 font-medium">Disponible</p>
+                      {onlineUserIds.has(String(activeFriend.id)) ? (
+                        <>
+                          <div className="w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.8)]"></div>
+                          <p className="text-[11px] text-emerald-400 font-medium">En línea</p>
+                        </>
+                      ) : (
+                        <>
+                          <div className="w-2 h-2 bg-slate-500 rounded-full"></div>
+                          <p className="text-[11px] text-slate-500 font-medium">Desconectado</p>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>

@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS users (
   full_name VARCHAR(100) NOT NULL,
   email VARCHAR(100) UNIQUE NOT NULL,
   cognito_sub VARCHAR(255) UNIQUE,
+  cognito_confirmed BOOLEAN NOT NULL DEFAULT FALSE,
   dpi VARCHAR(20) UNIQUE NOT NULL,
   password_md5 CHAR(32) NOT NULL,
   profile_image_url TEXT NOT NULL,

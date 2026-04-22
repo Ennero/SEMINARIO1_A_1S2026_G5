@@ -1,8 +1,8 @@
 import api from './api';
 
-export async function fetchUsers(currentUserId) {
+export async function fetchUsers(currentUserId, q = '') {
   const response = await api.get('/users', {
-    params: { currentUserId },
+    params: { currentUserId, ...(q ? { q } : {}) },
   });
   return response.data;
 }

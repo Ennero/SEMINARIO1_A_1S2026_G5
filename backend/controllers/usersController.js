@@ -22,7 +22,15 @@ function mapUser(row) {
 
 async function getAllUsers(req, res) {
   try {
-    const { currentUserId } = req.query;
+    const { currentUserId, q } = req.query;
+
+    const values = [currentUserId ? Number(currentUserId) : null];
+    let searchClause = '';
+
+    if (q && q.trim()) {
+      values.push(`%${q.toLowerCase().trim()}%`);
+      searchClause = `AND (LOWER(u.username) LIKE $${values.length} OR LOWER(u.full_name) LIKE $${values.length})`;
+    }
 
     const baseQuery = `
       SELECT u.id, u.username, u.full_name, u.email, u.dpi, u.profile_image_url, u.created_at,
@@ -31,10 +39,12 @@ async function getAllUsers(req, res) {
       FROM users u
       LEFT JOIN friendships f ON (f.sender_id = $1 AND f.receiver_id = u.id) OR (f.sender_id = u.id AND f.receiver_id = $1)
       WHERE ($1::int IS NULL OR u.id <> $1)
+        AND u.cognito_confirmed = TRUE
+        ${searchClause}
       ORDER BY u.created_at DESC
     `;
 
-    const users = await pool.query(baseQuery, [currentUserId ? Number(currentUserId) : null]);
+    const users = await pool.query(baseQuery, values);
     return res.status(200).json({ users: users.rows.map(mapUser) });
   } catch (error) {
     console.error('getAllUsers error:', error);

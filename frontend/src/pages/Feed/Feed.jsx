@@ -169,79 +169,121 @@ export default function Feed() {
   );
 }
 
-function PostCard({ post, onComment }) {
-  const [comment, setComment] = useState('');
-  const [translatedText, setTranslatedText] = useState(null);
-  const [translatedComments, setTranslatedComments] = useState({});
-  const [activeLang, setActiveLang] = useState(null);
-  const [isTranslating, setIsTranslating] = useState(false);
 
-  const onTranslate = async (langCode) => {
-    // Toggle off
+// ─── Per-comment translation widget ─────────────────────────────────────────
+function CommentTranslate({ postId, commentId }) {
+  const [activeLang, setActiveLang] = useState(null);
+  const [translated, setTranslated] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const translate = async (langCode) => {
     if (activeLang === langCode) {
       setActiveLang(null);
-      setTranslatedText(null);
-      setTranslatedComments({});
+      setTranslated('');
       return;
     }
-
-    setIsTranslating(true);
+    setLoading(true);
     setActiveLang(langCode);
-
     try {
-      const promises = [];
-      
-      // Translate Post Description
-      if (post.description) {
-        promises.push(
-          translatePostText(post.id, { targetLanguageCode: langCode })
-            .then(res => ({ type: 'post', text: res.translated?.translatedText }))
-        );
-      }
-
-      // Translate all comments
-      if (post.comments && post.comments.length > 0) {
-        post.comments.forEach(c => {
-          promises.push(
-            translatePostText(post.id, { targetLanguageCode: langCode, commentId: c.id })
-              .then(res => ({ type: 'comment', id: c.id, text: res.translated?.translatedText }))
-          );
-        });
-      }
-
-      const results = await Promise.all(promises);
-      const newTranslatedComments = {};
-      
-      results.forEach(res => {
-        if (res.type === 'post') setTranslatedText(res.text);
-        if (res.type === 'comment') newTranslatedComments[res.id] = res.text;
-      });
-
-      setTranslatedComments(newTranslatedComments);
-    } catch (err) {
-      console.error(err);
-      setTranslatedText('Error al traducir.');
+      const res = await translatePostText(postId, { targetLanguageCode: langCode, commentId });
+      setTranslated(res.translated?.translatedText || '');
+    } catch {
+      setTranslated('Error al traducir.');
     } finally {
-      setIsTranslating(false);
+      setLoading(false);
     }
   };
 
-  const LangButton = ({ code, label, flag }) => {
-    const isActive = activeLang === code;
-    return (
-      <button 
-        onClick={() => onTranslate(code)}
-        disabled={isTranslating && !isActive}
-        className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold transition-all disabled:opacity-50
-          ${isActive 
-            ? 'bg-red-500/20 border-red-500/50 text-red-300 shadow-[0_0_10px_rgba(239,68,68,0.2)]' 
-            : 'bg-slate-800/50 border-slate-600/50 text-slate-400 hover:bg-slate-700/50 hover:text-slate-300'}`}
-      >
-        <span>{flag}</span>
-        <span>{label}</span>
-      </button>
-    );
+  const Btn = ({ code, label }) => (
+    <button
+      onClick={() => translate(code)}
+      disabled={loading && activeLang !== code}
+      className={`px-2 py-0.5 rounded text-[10px] font-bold border transition-all disabled:opacity-50
+        ${activeLang === code
+          ? 'bg-orange-500/20 border-orange-500/50 text-orange-300'
+          : 'bg-slate-800/60 border-slate-600/50 text-slate-500 hover:text-slate-300 hover:bg-slate-700/60'
+        }`}
+    >
+      {loading && activeLang === code ? '…' : label}
+    </button>
+  );
+
+  return (
+    <div className="mt-1.5">
+      <div className="flex items-center gap-1">
+        <span className="text-[10px] text-slate-600 uppercase tracking-wider">Traducir:</span>
+        <Btn code="en" label="EN" />
+        <Btn code="it" label="IT" />
+        <Btn code="pt" label="PT" />
+      </div>
+      {translated && (
+        <p className="text-orange-300 text-xs font-medium mt-1 bg-orange-950/20 border-l-2 border-orange-500/50 pl-2 py-0.5 rounded-r-lg animate-fade-in">
+          {translated}
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ─── Per-description translation widget ──────────────────────────────────────
+function DescriptionTranslate({ postId }) {
+  const [activeLang, setActiveLang] = useState(null);
+  const [translated, setTranslated] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const translate = async (langCode) => {
+    if (activeLang === langCode) {
+      setActiveLang(null);
+      setTranslated('');
+      return;
+    }
+    setLoading(true);
+    setActiveLang(langCode);
+    try {
+      const res = await translatePostText(postId, { targetLanguageCode: langCode });
+      setTranslated(res.translated?.translatedText || '');
+    } catch {
+      setTranslated('Error al traducir.');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const Btn = ({ code, label, flag }) => (
+    <button
+      onClick={() => translate(code)}
+      disabled={loading && activeLang !== code}
+      className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold transition-all disabled:opacity-50
+        ${activeLang === code
+          ? 'bg-red-500/20 border-red-500/50 text-red-300 shadow-[0_0_10px_rgba(239,68,68,0.2)]'
+          : 'bg-slate-800/50 border-slate-600/50 text-slate-400 hover:bg-slate-700/50 hover:text-slate-300'
+        }`}
+    >
+      <span>{flag}</span>
+      <span>{loading && activeLang === code ? '…' : label}</span>
+    </button>
+  );
+
+  return (
+    <>
+      <div className="flex items-center gap-2">
+        <span className="text-xs font-semibold text-slate-500 mr-1 uppercase tracking-wider">Traducir:</span>
+        <Btn code="en" label="EN" flag="🇺🇸" />
+        <Btn code="it" label="IT" flag="🇮🇹" />
+        <Btn code="pt" label="PT" flag="🇧🇷" />
+      </div>
+      {translated && (
+        <p className="text-orange-300 text-sm leading-relaxed font-medium bg-orange-950/20 border-l-2 border-orange-500/50 pl-3 py-1 rounded-r-lg animate-fade-in mt-2">
+          {translated}
+        </p>
+      )}
+    </>
+  );
+}
+
+// ─── PostCard ─────────────────────────────────────────────────────────────────
+function PostCard({ post, onComment }) {
+  const [comment, setComment] = useState('');
 
   return (
     <article className="bg-slate-800/80 backdrop-blur-xl rounded-[2rem] border border-slate-700 shadow-xl overflow-hidden hover:border-slate-600 transition-colors">
@@ -252,23 +294,13 @@ function PostCard({ post, onComment }) {
             <p className="font-bold text-white text-lg">{post.username || 'Usuario'}</p>
             <p className="text-xs text-slate-400">{new Date(post.createdAt).toLocaleString()}</p>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-slate-500 mr-1 uppercase tracking-wider">Traducir:</span>
-            <LangButton code="en" label="EN" flag="🇺🇸" />
-            <LangButton code="it" label="IT" flag="🇮🇹" />
-            <LangButton code="pt" label="PT" flag="🇧🇷" />
-          </div>
+          <DescriptionTranslate postId={post.id} />
         </div>
 
         <div className="space-y-1">
           <p className="text-slate-300 text-sm leading-relaxed">
             {post.description || <span className="italic text-slate-500">Sin descripción</span>}
           </p>
-          {translatedText && (
-            <p className="text-orange-300 text-sm leading-relaxed font-medium bg-orange-950/20 border-l-2 border-orange-500/50 pl-3 py-1 rounded-r-lg animate-fade-in">
-              {translatedText}
-            </p>
-          )}
         </div>
 
         <div className="flex flex-wrap gap-2 pt-1">
@@ -278,16 +310,12 @@ function PostCard({ post, onComment }) {
         </div>
 
         {post.comments?.length > 0 && (
-          <div className="space-y-2 pt-4 border-t border-slate-700/50">
+          <div className="space-y-3 pt-4 border-t border-slate-700/50">
             {(post.comments || []).map((entry) => (
-              <div key={entry.id} className="text-sm bg-slate-900/40 rounded-xl px-4 py-2.5 border border-slate-700/50">
+              <div key={entry.id} className="text-sm bg-slate-900/40 rounded-xl px-4 py-3 border border-slate-700/50">
                 <span className="font-bold text-slate-200">{entry.username}: </span>
                 <span className="text-slate-300">{entry.content}</span>
-                {translatedComments[entry.id] && (
-                  <p className="text-orange-300 text-xs font-medium mt-1.5 bg-orange-950/20 border-l-2 border-orange-500/50 pl-2 py-1 rounded-r-lg animate-fade-in">
-                    {translatedComments[entry.id]}
-                  </p>
-                )}
+                <CommentTranslate postId={post.id} commentId={entry.id} />
               </div>
             ))}
           </div>
@@ -313,3 +341,4 @@ function PostCard({ post, onComment }) {
     </article>
   );
 }
+
