@@ -1,0 +1,9 @@
+{
+  "name": "semi-social-lambdas",
+  "version": "1.0.0",
+  "description": "AWS Lambdas para el proyecto Semi-Social",
+  "main": "imageUploader.js",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.0.0"
+  }
+}

@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
+import { io } from 'socket.io-client';
 import { getSessionUser } from '../../services/session';
 import { fetchFriends } from '../../services/usersService';
 import {
@@ -6,6 +7,9 @@ import {
   getOrCreateDirectRoom,
   sendChatMessage,
 } from '../../services/chatService';
+
+// Initialize socket outside component to avoid multiple connections
+const socket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000');
 
 export default function Chats() {
   const sessionUser = useMemo(() => getSessionUser(), []);
@@ -15,6 +19,15 @@ export default function Chats() {
   const [roomId, setRoomId] = useState(null);
   const [draft, setDraft] = useState('');
   const [error, setError] = useState('');
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   useEffect(() => {
     async function loadFriends() {
@@ -31,6 +44,25 @@ export default function Chats() {
     loadFriends();
   }, [sessionUser?.id]);
 
+  useEffect(() => {
+    const handleReceiveMessage = (data) => {
+      // Only append if it's the current room we are viewing
+      if (data.room === roomId) {
+        setMessages((prevMessages) => {
+          // Prevent duplicates if we already added it locally
+          if (prevMessages.some((msg) => msg.id === data.id)) return prevMessages;
+          return [...prevMessages, data];
+        });
+      }
+    };
+
+    socket.on('receive_message', handleReceiveMessage);
+
+    return () => {
+      socket.off('receive_message', handleReceiveMessage);
+    };
+  }, [roomId]);
+
   const openChat = async (friend) => {
     setActiveFriend(friend);
     setError('');
@@ -39,6 +71,8 @@ export default function Chats() {
       const roomData = await getOrCreateDirectRoom(sessionUser.id, friend.id);
       const currentRoomId = roomData.room?.id;
       setRoomId(currentRoomId);
+
+      socket.emit('join_room', currentRoomId);
 
       const messagesData = await fetchRoomMessages(currentRoomId, sessionUser.id);
       setMessages(messagesData.messages || []);
@@ -51,15 +85,33 @@ export default function Chats() {
     event.preventDefault();
     if (!roomId || !draft.trim()) return;
 
+    const messageText = draft.trim();
+    setDraft('');
+
     try {
-      await sendChatMessage({
+      // Send to API to persist in database
+      const response = await sendChatMessage({
         roomId,
         senderId: sessionUser.id,
-        message: draft.trim(),
+        message: messageText,
       });
-      setDraft('');
-      const messagesData = await fetchRoomMessages(roomId, sessionUser.id);
-      setMessages(messagesData.messages || []);
+
+      // Construct message object to broadcast and update locally
+      const newMessage = {
+        id: response.message?.id || Date.now(), // Fallback if backend doesn't return ID immediately
+        room: roomId,
+        sender_id: sessionUser.id,
+        message: messageText,
+        created_at: new Date().toISOString(),
+      };
+
+      // Emit to socket
+      socket.emit('send_message', newMessage);
+
+      // Append locally to feel faster, or refetch
+      // (The socket might also send it back to us, we deduplicate in handleReceiveMessage)
+      setMessages((prev) => [...prev, newMessage]);
+
     } catch (requestError) {
       setError(requestError.message);
     }
@@ -134,6 +186,7 @@ export default function Chats() {
                     </div>
                   </div>
                 ))}
+                <div ref={messagesEndRef} />
               </div>
 
               <div className="p-4 bg-slate-900/40 border-t border-slate-700/50 backdrop-blur-md">
