@@ -65,6 +65,11 @@ export default function Profile() {
     event.preventDefault();
     if (!sessionUser?.id) return;
 
+    if (!form.password) {
+      setError('Debes ingresar tu contraseña para confirmar los cambios.');
+      return;
+    }
+
     setIsLoading(true);
     setError('');
     setMessage('');
@@ -74,11 +79,8 @@ export default function Profile() {
         fullName: form.fullName,
         dpi: form.dpi,
         username: form.username,
+        password: form.password,
       };
-
-      if (form.password) {
-        payload.password = form.password;
-      }
 
       if (imageDataUrl) {
         payload.imageBase64 = stripPrefix(imageDataUrl);

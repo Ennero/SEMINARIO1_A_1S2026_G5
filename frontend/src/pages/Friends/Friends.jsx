@@ -42,7 +42,12 @@ export default function Friends() {
 
       // Sort by creation date or id descending to get the latest registered users
       const allUsers = usersData.users || [];
-      const latestUsers = allUsers.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)).slice(0, 3);
+      const validRecommendations = allUsers.filter(u => {
+        if (u.friendshipStatus === 'accepted') return false; // Ya son amigos
+        if (u.friendshipStatus === 'pending' && u.friendshipSenderId !== sessionUser?.id) return false; // Me envió, ya está en mis solicitudes entrantes
+        return true;
+      });
+      const latestUsers = validRecommendations.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)).slice(0, 3);
 
       setRecommendations(latestUsers);
       setRequests(requestsData.requests || []);

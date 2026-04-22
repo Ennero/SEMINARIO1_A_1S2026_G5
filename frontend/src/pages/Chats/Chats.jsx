@@ -135,15 +135,19 @@ export default function Chats() {
             <h2 className="text-2xl font-black text-white tracking-tight">
               Chats
             </h2>
-            <button onClick={() => setIsModalOpen(true)} className="w-10 h-10 rounded-full bg-slate-700 hover:bg-slate-600 text-white flex items-center justify-center transition-colors border border-slate-600">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
-            </button>
+            {friendsList.length > 0 && (
+              <button onClick={() => setIsModalOpen(true)} className="w-10 h-10 rounded-full bg-slate-700 hover:bg-slate-600 text-white flex items-center justify-center transition-colors border border-slate-600">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
+              </button>
+            )}
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
-            {friendsList.map(friend => (
+            {chatRooms.map(room => {
+              const friend = room.participants?.find(p => p.id !== sessionUser?.id) || {};
+              return (
               <div 
-                key={friend.id}
+                key={`room-${room.id}`}
                 onClick={() => openChat(friend)}
                 className={`flex items-center space-x-4 p-3 rounded-2xl cursor-pointer transition-all duration-200 border 
                   ${activeFriend?.id === friend.id 
@@ -154,11 +158,11 @@ export default function Chats() {
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-600 to-orange-500 text-white grid place-items-center font-bold shadow-inner">{String(friend.username || 'U').charAt(0).toUpperCase()}</div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-sm font-bold text-white truncate">{friend.username}</h3>
-                  <p className="text-xs text-slate-400 truncate font-medium">{friend.full_name}</p>
+                  <p className="text-xs text-slate-400 truncate font-medium">{friend.fullName || friend.full_name}</p>
                 </div>
               </div>
-            ))}
-            {friendsList.length === 0 ? <p className="text-sm text-slate-500 italic px-2">Aún no tienes amigos para chatear.</p> : null}
+            )})}
+            {chatRooms.length === 0 ? <p className="text-sm text-slate-500 italic px-2">No tienes conversaciones activas. ¡Agrega amigos para chatear!</p> : null}
           </div>
         </div>
 

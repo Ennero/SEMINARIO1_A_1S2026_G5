@@ -15,6 +15,8 @@ function mapUser(row) {
     dpi: row.dpi,
     profileImageUrl: row.profile_image_url,
     createdAt: row.created_at,
+    friendshipStatus: row.friendship_status,
+    friendshipSenderId: row.friendship_sender_id,
   };
 }
 
@@ -23,8 +25,11 @@ async function getAllUsers(req, res) {
     const { currentUserId } = req.query;
 
     const baseQuery = `
-      SELECT u.id, u.username, u.full_name, u.email, u.dpi, u.profile_image_url, u.created_at
+      SELECT u.id, u.username, u.full_name, u.email, u.dpi, u.profile_image_url, u.created_at,
+             f.status as friendship_status,
+             f.sender_id as friendship_sender_id
       FROM users u
+      LEFT JOIN friendships f ON (f.sender_id = $1 AND f.receiver_id = u.id) OR (f.sender_id = u.id AND f.receiver_id = $1)
       WHERE ($1::int IS NULL OR u.id <> $1)
       ORDER BY u.created_at DESC
     `;
@@ -142,12 +147,36 @@ async function sendFriendRequest(req, res) {
       return res.status(400).json({ error: 'Cannot send a friend request to yourself.' });
     }
 
+    const existing = await pool.query(
+      `SELECT id, status, sender_id, receiver_id FROM friendships 
+       WHERE (sender_id = $1 AND receiver_id = $2) OR (sender_id = $2 AND receiver_id = $1)`,
+      [senderId, receiverId]
+    );
+
+    if (existing.rowCount > 0) {
+      const rel = existing.rows[0];
+      if (rel.status === 'accepted') return res.status(400).json({ error: 'Ya son amigos.' });
+      if (rel.status === 'pending') {
+         if (rel.sender_id === Number(senderId)) {
+             return res.status(400).json({ error: 'La solicitud ya fue enviada.' });
+         } else {
+             const updated = await pool.query('UPDATE friendships SET status = $1, responded_at = NOW() WHERE id = $2 RETURNING *', ['accepted', rel.id]);
+             return res.status(200).json({ message: 'Amistad aceptada mutuamente.', request: updated.rows[0] });
+         }
+      }
+      if (rel.status === 'rejected') {
+          const updated = await pool.query(
+              `UPDATE friendships SET status = 'pending', sender_id = $1, receiver_id = $2, responded_at = NULL WHERE id = $3 RETURNING *`,
+              [senderId, receiverId, rel.id]
+          );
+          return res.status(201).json({ message: 'Friend request sent.', request: updated.rows[0] });
+      }
+    }
+
     const requestResult = await pool.query(
       `
         INSERT INTO friendships (sender_id, receiver_id, status)
         VALUES ($1, $2, 'pending')
-        ON CONFLICT (sender_id, receiver_id)
-        DO UPDATE SET status = 'pending', responded_at = NULL
         RETURNING id, sender_id, receiver_id, status, created_at
       `,
       [senderId, receiverId]
