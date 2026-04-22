@@ -9,6 +9,7 @@ import Register from './pages/Register/Register';
 import Feed from './pages/Feed/Feed';
 import Profile from './pages/Profile/Profile';
 import { hasSession } from './services/session';
+import Home from './pages/Home/Home';
 
 const ProtectedRoute = ({ children }) => {
   if (!hasSession()) {
@@ -32,6 +33,7 @@ function App() {
   return (
     <Router>
       <Routes>
+        <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         
@@ -43,7 +45,7 @@ function App() {
             </ProtectedRoute>
           )}
         >
-          <Route path="/" element={<Feed />} />
+          <Route path="/feed" element={<Feed />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/friends" element={<Friends />} />
           <Route path="/chats" element={<Chats />} />

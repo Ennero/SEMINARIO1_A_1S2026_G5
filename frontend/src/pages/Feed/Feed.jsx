@@ -138,69 +138,75 @@ export default function Feed() {
   };
 
   return (
-    <main className="min-h-screen pt-24 pb-10 px-4 bg-[radial-gradient(circle_at_top_left,#f8f1eb,#fff7f0,#f5eee4)]">
-      <section className="max-w-6xl mx-auto grid lg:grid-cols-[1.3fr_0.7fr] gap-6">
+    <main className="min-h-screen pt-24 pb-10 px-4 bg-slate-900 relative font-sans">
+      {/* Fondo animado decorativo */}
+      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        <div className="absolute w-[500px] h-[500px] bg-red-600/20 blur-[120px] rounded-full top-[-10%] left-[-10%] animate-pulse"></div>
+        <div className="absolute w-[600px] h-[600px] bg-sky-500/20 blur-[120px] rounded-full bottom-[-10%] right-[-10%] animate-pulse" style={{ animationDelay: '2s' }}></div>
+      </div>
+
+      <section className="relative z-10 max-w-6xl mx-auto grid lg:grid-cols-[1.3fr_0.7fr] gap-6">
         <div className="space-y-6">
-          <article className="bg-white/90 rounded-2xl border border-slate-200 shadow p-5">
-            <h1 className="text-2xl font-extrabold text-cafeto-dark">Publicaciones</h1>
-            <p className="text-sm text-slate-600 mt-1">Crea publicaciones, comenta y filtra por etiquetas detectadas.</p>
+          <article className="bg-slate-800/80 backdrop-blur-xl rounded-[2rem] border border-slate-700 shadow-2xl p-6">
+            <h1 className="text-2xl font-black text-white">Publicaciones</h1>
+            <p className="text-sm text-slate-400 mt-1">Crea publicaciones, comenta y filtra por etiquetas detectadas.</p>
 
             <form className="mt-4 space-y-3" onSubmit={onCreatePost}>
               <textarea
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
-                placeholder="Descripcion opcional"
-                className="w-full rounded-xl border border-slate-300 px-3 py-2 min-h-24"
+                placeholder="Descripción opcional"
+                className="w-full rounded-xl border border-slate-600 bg-slate-900/50 text-white px-4 py-3 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 transition-all min-h-24 text-sm"
               />
-              <input type="file" accept="image/*" onChange={onImageSelect} className="w-full rounded-xl border border-slate-300 px-3 py-2 bg-white" />
-              {imageDataUrl ? <img src={imageDataUrl} alt="preview" className="w-40 h-40 rounded-xl object-cover border" /> : null}
-              <button type="submit" className="rounded-xl px-4 py-2 bg-cafeto-red text-white font-bold disabled:opacity-50" disabled={!imageDataUrl || isLoading}>
-                {isLoading ? 'Publicando...' : 'Crear publicacion'}
+              <input type="file" accept="image/*" onChange={onImageSelect} className="w-full rounded-xl border border-slate-600 bg-slate-900/50 text-slate-400 px-4 py-3 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-red-500/10 file:text-red-400 hover:file:bg-red-500/20" />
+              {imageDataUrl ? <img src={imageDataUrl} alt="preview" className="w-40 h-40 rounded-xl object-cover border border-slate-600 shadow-lg" /> : null}
+              <button type="submit" className="rounded-xl px-6 py-3 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-orange-500 text-white font-bold disabled:opacity-50 shadow-lg shadow-red-500/30 transition-all" disabled={!imageDataUrl || isLoading}>
+                {isLoading ? 'Publicando...' : 'Crear publicación'}
               </button>
             </form>
           </article>
 
-          <article className="bg-white/90 rounded-2xl border border-slate-200 shadow p-5">
-            <div className="flex flex-col md:flex-row gap-3 md:items-end">
+          <article className="bg-slate-800/80 backdrop-blur-xl rounded-[2rem] border border-slate-700 shadow-2xl p-6">
+            <div className="flex flex-col md:flex-row gap-4 md:items-end">
               <div className="flex-1">
-                <label className="text-sm font-semibold text-slate-600">Buscar por descripcion</label>
-                <input value={searchText} onChange={(e) => setSearchText(e.target.value)} className="w-full mt-1 rounded-lg border px-3 py-2" />
+                <label className="text-xs font-medium text-slate-400 mb-1.5 block">Buscar por descripción</label>
+                <input value={searchText} onChange={(e) => setSearchText(e.target.value)} className="w-full rounded-xl border border-slate-600 bg-slate-900/50 text-white px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-red-500/50 text-sm placeholder-slate-500" placeholder="Buscar..." />
               </div>
               <div className="md:w-52">
-                <label className="text-sm font-semibold text-slate-600">Etiqueta</label>
-                <select value={selectedTag} onChange={(e) => setSelectedTag(e.target.value)} className="w-full mt-1 rounded-lg border px-3 py-2 bg-white">
+                <label className="text-xs font-medium text-slate-400 mb-1.5 block">Etiqueta</label>
+                <select value={selectedTag} onChange={(e) => setSelectedTag(e.target.value)} className="w-full rounded-xl border border-slate-600 bg-slate-900/50 text-white px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-red-500/50 text-sm">
                   <option value="all">Todos</option>
                   {tags.map((tag) => <option key={tag} value={tag}>{tag}</option>)}
                 </select>
               </div>
-              <button onClick={applyFilters} className="rounded-lg bg-cafeto-dark text-white px-4 py-2 font-semibold">Filtrar</button>
+              <button onClick={applyFilters} className="rounded-xl bg-slate-700 hover:bg-slate-600 text-white px-6 py-2.5 font-bold transition-colors text-sm border border-slate-600">Filtrar</button>
             </div>
           </article>
 
-          <div className="space-y-4">
+          <div className="space-y-6">
             {posts.map((post) => (
               <PostCard key={post.id} post={post} onComment={onAddComment} onTranslate={onTranslatePost} />
             ))}
           </div>
 
-          {error ? <p className="text-sm text-red-600">{error}</p> : null}
+          {error ? <div className="p-3 bg-red-900/30 border border-red-500/30 rounded-xl text-sm text-red-400 animate-fade-in">{error}</div> : null}
         </div>
 
-        <aside className="bg-white/90 rounded-2xl border border-slate-200 shadow p-5 h-fit sticky top-24">
-          <h2 className="text-xl font-extrabold text-cafeto-dark">Chatbot Lex</h2>
-          <p className="text-sm text-slate-600 mt-1">Consulta temas de la facultad desde aqui.</p>
+        <aside className="bg-slate-800/80 backdrop-blur-xl rounded-[2rem] border border-slate-700 shadow-2xl p-6 h-fit sticky top-24">
+          <h2 className="text-xl font-black text-white">Chatbot Lex</h2>
+          <p className="text-sm text-slate-400 mt-1">Consulta temas de la facultad desde aquí.</p>
 
-          <form className="mt-4 space-y-3" onSubmit={onAskChatbot}>
+          <form className="mt-5 space-y-4" onSubmit={onAskChatbot}>
             <textarea
               value={chatInput}
               onChange={(event) => setChatInput(event.target.value)}
-              placeholder="Pregunta al bot"
-              className="w-full rounded-xl border border-slate-300 px-3 py-2 min-h-24"
+              placeholder="Hazle una pregunta al bot..."
+              className="w-full rounded-xl border border-slate-600 bg-slate-900/50 text-white px-4 py-3 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all min-h-24 text-sm"
             />
-            <button className="rounded-xl px-4 py-2 bg-cafeto-dark text-white font-bold">Preguntar</button>
+            <button className="w-full rounded-xl px-4 py-3 bg-gradient-to-r from-blue-600 to-sky-500 hover:from-sky-500 hover:to-blue-400 text-white font-bold shadow-lg shadow-blue-500/25 transition-all text-sm">Preguntar al Asistente</button>
           </form>
 
-          {chatReply ? <p className="mt-4 text-sm text-slate-700 bg-slate-100 rounded-lg p-3">{chatReply}</p> : null}
+          {chatReply ? <div className="mt-4 text-sm text-sky-100 bg-sky-900/30 border border-sky-500/30 rounded-xl p-4 animate-fade-in">{chatReply}</div> : null}
         </aside>
       </section>
     </main>
@@ -211,36 +217,38 @@ function PostCard({ post, onComment, onTranslate }) {
   const [comment, setComment] = useState('');
 
   return (
-    <article className="bg-white rounded-2xl border border-slate-200 shadow overflow-hidden">
-      <img src={post.imageUrl} alt="post" className="w-full max-h-96 object-cover" />
-      <div className="p-4 space-y-3">
+    <article className="bg-slate-800/80 backdrop-blur-xl rounded-[2rem] border border-slate-700 shadow-xl overflow-hidden hover:border-slate-600 transition-colors">
+      <img src={post.imageUrl} alt="post" className="w-full max-h-[500px] object-cover border-b border-slate-700/50" />
+      <div className="p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="font-bold text-cafeto-dark">{post.username || 'Usuario'}</p>
-            <p className="text-xs text-slate-500">{new Date(post.createdAt).toLocaleString()}</p>
+            <p className="font-bold text-white text-lg">{post.username || 'Usuario'}</p>
+            <p className="text-xs text-slate-400">{new Date(post.createdAt).toLocaleString()}</p>
           </div>
-          <button onClick={() => onTranslate(post.id)} className="text-sm font-semibold text-cafeto-red">Traducir</button>
+          <button onClick={() => onTranslate(post.id)} className="text-sm font-semibold text-red-400 hover:text-red-300 transition-colors bg-red-500/10 px-3 py-1.5 rounded-lg border border-red-500/20">Traducir 🌍</button>
         </div>
 
-        <p className="text-slate-700">{post.description || 'Sin descripcion'}</p>
+        <p className="text-slate-300 text-sm leading-relaxed">{post.description || <span className="italic text-slate-500">Sin descripción</span>}</p>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 pt-1">
           {(post.tags || []).map((tag) => (
-            <span key={`${post.id}-${tag.name}`} className="text-xs bg-slate-100 px-2 py-1 rounded-full text-slate-600">#{tag.name}</span>
+            <span key={`${post.id}-${tag.name}`} className="text-xs bg-slate-900/60 border border-slate-600 px-3 py-1 rounded-full text-slate-300 font-medium">#{tag.name}</span>
           ))}
         </div>
 
-        <div className="space-y-2">
-          {(post.comments || []).map((entry) => (
-            <div key={entry.id} className="text-sm bg-slate-50 rounded-lg px-3 py-2">
-              <span className="font-semibold">{entry.username}: </span>
-              <span>{entry.content}</span>
-            </div>
-          ))}
-        </div>
+        {post.comments?.length > 0 && (
+          <div className="space-y-2 pt-4 border-t border-slate-700/50">
+            {(post.comments || []).map((entry) => (
+              <div key={entry.id} className="text-sm bg-slate-900/40 rounded-xl px-4 py-2.5 border border-slate-700/50">
+                <span className="font-bold text-slate-200">{entry.username}: </span>
+                <span className="text-slate-300">{entry.content}</span>
+              </div>
+            ))}
+          </div>
+        )}
 
         <form
-          className="flex gap-2"
+          className="flex gap-3 pt-2"
           onSubmit={(event) => {
             event.preventDefault();
             onComment(post.id, comment);
@@ -250,10 +258,10 @@ function PostCard({ post, onComment, onTranslate }) {
           <input
             value={comment}
             onChange={(event) => setComment(event.target.value)}
-            placeholder="Comentar"
-            className="flex-1 rounded-lg border px-3 py-2"
+            placeholder="Escribe un comentario..."
+            className="flex-1 rounded-xl border border-slate-600 bg-slate-900/50 text-white px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 text-sm placeholder-slate-500 transition-all"
           />
-          <button className="rounded-lg bg-cafeto-dark text-white px-3 font-semibold">Enviar</button>
+          <button className="rounded-xl bg-slate-700 hover:bg-slate-600 text-white px-5 font-bold text-sm border border-slate-600 transition-colors">Enviar</button>
         </form>
       </div>
     </article>

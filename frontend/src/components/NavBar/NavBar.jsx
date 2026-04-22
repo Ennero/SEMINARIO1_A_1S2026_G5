@@ -14,12 +14,12 @@ export default function NavBar() {
   const getNavClass = ({ isActive }) => 
     `relative px-4 py-2 font-semibold text-base transition-all duration-300 ${
       isActive 
-        ? 'text-white border-b-2 border-white' 
-        : 'text-white/60 hover:text-white'
+        ? 'text-white border-b-2 border-red-500' 
+        : 'text-slate-400 hover:text-white'
     }`;
 
   return (
-    <nav className="fixed top-0 w-full h-20 bg-black/40 backdrop-blur-md z-50 flex items-center justify-between px-12 border-b border-white/5">
+    <nav className="fixed top-0 w-full h-20 bg-slate-950/80 backdrop-blur-xl z-50 flex items-center justify-between px-12 border-b border-slate-800">
       {/* Brand - Restored Typography */}
       <div className="flex items-center space-x-4">
         <img src={logo} alt="Logo" className="h-14 w-auto object-contain transition-transform hover:scale-110" />

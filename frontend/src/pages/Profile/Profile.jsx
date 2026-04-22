@@ -99,26 +99,38 @@ export default function Profile() {
   };
 
   return (
-    <main className="min-h-screen pt-24 pb-12 px-4 bg-[linear-gradient(135deg,#f6efe7,#fff,#f8f1eb)]">
-      <section className="max-w-2xl mx-auto bg-white rounded-2xl shadow border border-slate-200 p-6">
-        <h1 className="text-2xl font-extrabold text-cafeto-dark">Perfil</h1>
-        <p className="text-sm text-slate-600 mt-1">Actualiza tus datos de cuenta y foto de perfil.</p>
+    <main className="min-h-screen pt-24 pb-12 px-4 bg-slate-900 relative font-sans">
+      {/* Background orbs */}
+      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        <div className="absolute w-[500px] h-[500px] bg-red-600/20 blur-[130px] rounded-full top-[-10%] right-[-10%] animate-pulse"></div>
+        <div className="absolute w-[600px] h-[600px] bg-sky-500/20 blur-[120px] rounded-full bottom-[-10%] left-[-10%] animate-pulse" style={{ animationDelay: '1.5s' }}></div>
+      </div>
 
-        <form className="mt-6 space-y-3" onSubmit={onSubmit}>
-          <input name="fullName" value={form.fullName} onChange={onChange} placeholder="Nombre completo" className="w-full rounded-lg border px-3 py-2" />
-          <input name="username" value={form.username} onChange={onChange} placeholder="Nombre de usuario" className="w-full rounded-lg border px-3 py-2" />
-          <input name="dpi" value={form.dpi} onChange={onChange} placeholder="DPI" className="w-full rounded-lg border px-3 py-2" />
-          <input name="password" value={form.password} onChange={onChange} placeholder="Contrasena para confirmar cambios" type="password" className="w-full rounded-lg border px-3 py-2" />
-          <input type="file" accept="image/*" onChange={onImageSelect} className="w-full rounded-lg border px-3 py-2 bg-white" />
+      <section className="relative z-10 max-w-2xl mx-auto bg-slate-800/80 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-slate-700 p-8">
+        <h1 className="text-3xl font-black text-white">Perfil</h1>
+        <p className="text-sm text-slate-400 mt-2">Actualiza tus datos de cuenta y foto de perfil.</p>
 
-          {imageDataUrl ? <img src={imageDataUrl} alt="preview" className="w-32 h-32 rounded-xl object-cover border" /> : null}
+        <form className="mt-8 space-y-4" onSubmit={onSubmit}>
+          <input name="fullName" value={form.fullName} onChange={onChange} placeholder="Nombre completo" className="w-full rounded-xl border border-slate-600 bg-slate-900/50 text-white px-4 py-3 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 transition-all text-sm" />
+          <input name="username" value={form.username} onChange={onChange} placeholder="Nombre de usuario" className="w-full rounded-xl border border-slate-600 bg-slate-900/50 text-white px-4 py-3 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 transition-all text-sm" />
+          <input name="dpi" value={form.dpi} onChange={onChange} placeholder="DPI" className="w-full rounded-xl border border-slate-600 bg-slate-900/50 text-white px-4 py-3 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 transition-all text-sm" />
+          <input name="password" value={form.password} onChange={onChange} placeholder="Contraseña para confirmar cambios" type="password" className="w-full rounded-xl border border-slate-600 bg-slate-900/50 text-white px-4 py-3 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 transition-all text-sm" />
+          <input type="file" accept="image/*" onChange={onImageSelect} className="w-full rounded-xl border border-slate-600 bg-slate-900/50 text-slate-400 px-4 py-3 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-red-500/10 file:text-red-400 hover:file:bg-red-500/20 transition-all" />
 
-          <button disabled={isLoading} className="rounded-lg bg-cafeto-red text-white px-4 py-2 font-bold disabled:opacity-50">
-            {isLoading ? 'Guardando...' : 'Guardar cambios'}
-          </button>
+          {imageDataUrl ? (
+            <div className="pt-2">
+              <img src={imageDataUrl} alt="preview" className="w-32 h-32 rounded-[1.5rem] object-cover border-2 border-slate-600 shadow-xl" />
+            </div>
+          ) : null}
 
-          {message ? <p className="text-sm text-emerald-700">{message}</p> : null}
-          {error ? <p className="text-sm text-red-600">{error}</p> : null}
+          <div className="pt-4">
+            <button disabled={isLoading} className="w-full sm:w-auto rounded-xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-orange-500 text-white px-8 py-3.5 font-bold shadow-lg shadow-red-500/30 disabled:opacity-50 transition-all">
+              {isLoading ? 'Guardando...' : 'Guardar cambios'}
+            </button>
+          </div>
+
+          {message ? <p className="text-sm text-emerald-400 bg-emerald-900/30 border border-emerald-500/30 rounded-xl p-3">{message}</p> : null}
+          {error ? <p className="text-sm text-red-400 bg-red-900/30 border border-red-500/30 rounded-xl p-3">{error}</p> : null}
         </form>
       </section>
     </main>
