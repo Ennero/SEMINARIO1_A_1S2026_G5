@@ -151,8 +151,8 @@ async function registerUser(req, res) {
 
     const passwordMd5 = hashPasswordMd5(password);
     const insertQuery = `
-      INSERT INTO users (username, full_name, email, cognito_sub, dpi, password_md5, profile_image_url)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      INSERT INTO users (username, full_name, email, cognito_sub, dpi, password_md5, profile_image_url, face_image_url)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING id, username, full_name, email, dpi, profile_image_url, cognito_sub, created_at
     `;
 
@@ -163,6 +163,7 @@ async function registerUser(req, res) {
       signUpResponse.UserSub || null,
       dpi,
       passwordMd5,
+      imageUrl,
       imageUrl,
     ];
 
@@ -216,7 +217,7 @@ async function loginUser(req, res) {
     });
 
     const localUser = await pool.query(
-      'SELECT id, username, full_name, email, dpi, profile_image_url, cognito_sub, created_at FROM users WHERE email = $1 OR username = $1 LIMIT 1',
+      'SELECT id, username, full_name, email, dpi, profile_image_url, face_image_url, cognito_sub, created_at FROM users WHERE email = $1 OR username = $1 LIMIT 1',
       [identifier]
     );
 
@@ -248,7 +249,7 @@ async function loginFacial(req, res) {
     }
 
     const userResult = await pool.query(
-      'SELECT id, username, full_name, email, dpi, profile_image_url, cognito_sub, created_at FROM users WHERE email = $1 LIMIT 1',
+      'SELECT id, username, full_name, email, dpi, profile_image_url, face_image_url, cognito_sub, created_at FROM users WHERE email = $1 LIMIT 1',
       [email]
     );
 
@@ -257,9 +258,11 @@ async function loginFacial(req, res) {
     }
 
     const user = userResult.rows[0];
-    if (!user.profile_image_url) {
+    const faceImageUrl = user.face_image_url || user.profile_image_url;
+
+    if (!faceImageUrl) {
       return res.status(400).json({
-        error: 'This user does not have a profile image configured for facial login.',
+        error: 'This user does not have a facial image configured for login.',
       });
     }
 
@@ -267,7 +270,7 @@ async function loginFacial(req, res) {
 
     const compareResult = await compareFaceWithProfileImage({
       imageBase64,
-      profileImageUrl: user.profile_image_url,
+      profileImageUrl: faceImageUrl,
       threshold,
     });
 

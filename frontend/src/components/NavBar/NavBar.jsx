@@ -21,9 +21,11 @@ export default function NavBar() {
   return (
     <nav className="fixed top-0 w-full h-20 bg-slate-950/80 backdrop-blur-xl z-50 flex items-center justify-between px-12 border-b border-slate-800">
       {/* Brand - Restored Typography */}
-      <div className="flex items-center space-x-4">
-        <img src={logo} alt="Logo" className="h-14 w-auto object-contain transition-transform hover:scale-110" />
-        <span className="text-2xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-400 drop-shadow-md">
+      <div className="flex items-center space-x-3">
+        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-600 to-orange-500 flex items-center justify-center shadow-lg shadow-red-500/20 transform transition-transform hover:scale-105">
+          <span className="text-white font-black text-2xl tracking-tighter">SS</span>
+        </div>
+        <span className="text-2xl font-extrabold tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-400 drop-shadow-md">
           Semi-Social
         </span>
       </div>

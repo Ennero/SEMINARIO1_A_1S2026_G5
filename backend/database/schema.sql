@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
   dpi VARCHAR(20) UNIQUE NOT NULL,
   password_md5 CHAR(32) NOT NULL,
   profile_image_url TEXT NOT NULL,
+  face_image_url TEXT,
   rekognition_face_id VARCHAR(255),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

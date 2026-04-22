@@ -24,8 +24,8 @@ export default function Home() {
       </div>
 
       <section className={`relative z-10 max-w-5xl w-full mx-auto px-6 py-20 text-center transition-all duration-1000 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-        <h1 className="text-5xl md:text-7xl font-black text-white tracking-tight mb-6">
-          Bienvenido a <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-400">Semi-Social</span>
+        <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter mb-6">
+          Bienvenido a <span className="font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-400 drop-shadow-xl">Semi-Social</span>
         </h1>
         <p className="text-lg md:text-2xl text-slate-300 font-light max-w-2xl mx-auto mb-12">
           La red social moderna diseñada para la comunidad de la Facultad de Ingeniería. 

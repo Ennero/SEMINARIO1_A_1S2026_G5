@@ -172,50 +172,104 @@ export default function Feed() {
 function PostCard({ post, onComment }) {
   const [comment, setComment] = useState('');
   const [translatedText, setTranslatedText] = useState(null);
-  const [lang, setLang] = useState('en');
+  const [translatedComments, setTranslatedComments] = useState({});
+  const [activeLang, setActiveLang] = useState(null);
   const [isTranslating, setIsTranslating] = useState(false);
 
-  const onTranslate = async () => {
+  const onTranslate = async (langCode) => {
+    // Toggle off
+    if (activeLang === langCode) {
+      setActiveLang(null);
+      setTranslatedText(null);
+      setTranslatedComments({});
+      return;
+    }
+
     setIsTranslating(true);
+    setActiveLang(langCode);
+
     try {
-      const { translated } = await translatePostText(post.id, { targetLanguageCode: lang });
-      setTranslatedText(translated?.translatedText || 'Sin texto.');
+      const promises = [];
+      
+      // Translate Post Description
+      if (post.description) {
+        promises.push(
+          translatePostText(post.id, { targetLanguageCode: langCode })
+            .then(res => ({ type: 'post', text: res.translated?.translatedText }))
+        );
+      }
+
+      // Translate all comments
+      if (post.comments && post.comments.length > 0) {
+        post.comments.forEach(c => {
+          promises.push(
+            translatePostText(post.id, { targetLanguageCode: langCode, commentId: c.id })
+              .then(res => ({ type: 'comment', id: c.id, text: res.translated?.translatedText }))
+          );
+        });
+      }
+
+      const results = await Promise.all(promises);
+      const newTranslatedComments = {};
+      
+      results.forEach(res => {
+        if (res.type === 'post') setTranslatedText(res.text);
+        if (res.type === 'comment') newTranslatedComments[res.id] = res.text;
+      });
+
+      setTranslatedComments(newTranslatedComments);
     } catch (err) {
       console.error(err);
-      setTranslatedText('Error en traducción.');
+      setTranslatedText('Error al traducir.');
     } finally {
       setIsTranslating(false);
     }
+  };
+
+  const LangButton = ({ code, label, flag }) => {
+    const isActive = activeLang === code;
+    return (
+      <button 
+        onClick={() => onTranslate(code)}
+        disabled={isTranslating && !isActive}
+        className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold transition-all disabled:opacity-50
+          ${isActive 
+            ? 'bg-red-500/20 border-red-500/50 text-red-300 shadow-[0_0_10px_rgba(239,68,68,0.2)]' 
+            : 'bg-slate-800/50 border-slate-600/50 text-slate-400 hover:bg-slate-700/50 hover:text-slate-300'}`}
+      >
+        <span>{flag}</span>
+        <span>{label}</span>
+      </button>
+    );
   };
 
   return (
     <article className="bg-slate-800/80 backdrop-blur-xl rounded-[2rem] border border-slate-700 shadow-xl overflow-hidden hover:border-slate-600 transition-colors">
       <img src={post.imageUrl} alt="post" className="w-full max-h-[500px] object-cover border-b border-slate-700/50" />
       <div className="p-6 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <p className="font-bold text-white text-lg">{post.username || 'Usuario'}</p>
             <p className="text-xs text-slate-400">{new Date(post.createdAt).toLocaleString()}</p>
           </div>
-          <div className="flex items-center space-x-2">
-            <select value={lang} onChange={(e) => setLang(e.target.value)} className="bg-slate-900/50 text-slate-300 text-xs border border-slate-600 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-500">
-              <option value="en">Inglés</option>
-              <option value="it">Italiano</option>
-              <option value="pt">Portugués</option>
-            </select>
-            <button onClick={onTranslate} disabled={isTranslating} className="text-sm font-semibold text-red-400 hover:text-red-300 transition-colors bg-red-500/10 px-3 py-1.5 rounded-lg border border-red-500/20 disabled:opacity-50">
-              {isTranslating ? '...' : 'Traducir 🌍'}
-            </button>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-slate-500 mr-1 uppercase tracking-wider">Traducir:</span>
+            <LangButton code="en" label="EN" flag="🇺🇸" />
+            <LangButton code="it" label="IT" flag="🇮🇹" />
+            <LangButton code="pt" label="PT" flag="🇧🇷" />
           </div>
         </div>
 
-        <p className="text-slate-300 text-sm leading-relaxed">
-          {translatedText ? (
-             <span className="text-orange-300 animate-fade-in">{translatedText}</span>
-          ) : (
-             post.description || <span className="italic text-slate-500">Sin descripción</span>
+        <div className="space-y-1">
+          <p className="text-slate-300 text-sm leading-relaxed">
+            {post.description || <span className="italic text-slate-500">Sin descripción</span>}
+          </p>
+          {translatedText && (
+            <p className="text-orange-300 text-sm leading-relaxed font-medium bg-orange-950/20 border-l-2 border-orange-500/50 pl-3 py-1 rounded-r-lg animate-fade-in">
+              {translatedText}
+            </p>
           )}
-        </p>
+        </div>
 
         <div className="flex flex-wrap gap-2 pt-1">
           {(post.tags || []).map((tag) => (
@@ -229,6 +283,11 @@ function PostCard({ post, onComment }) {
               <div key={entry.id} className="text-sm bg-slate-900/40 rounded-xl px-4 py-2.5 border border-slate-700/50">
                 <span className="font-bold text-slate-200">{entry.username}: </span>
                 <span className="text-slate-300">{entry.content}</span>
+                {translatedComments[entry.id] && (
+                  <p className="text-orange-300 text-xs font-medium mt-1.5 bg-orange-950/20 border-l-2 border-orange-500/50 pl-2 py-1 rounded-r-lg animate-fade-in">
+                    {translatedComments[entry.id]}
+                  </p>
+                )}
               </div>
             ))}
           </div>

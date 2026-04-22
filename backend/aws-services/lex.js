@@ -12,9 +12,8 @@ async function sendLexMessage({ userId, message }) {
   const command = new RecognizeTextCommand({
     botId: process.env.LEX_BOT_ID,
     botAliasId: process.env.LEX_BOT_ALIAS_ID,
-    localeId: process.env.LEX_LOCALE_ID || 'es_US',
-    sessionId: `semi-social-${userId || 'guest'}`,
-    text: message,
+    localeId: process.env.LEX_LOCALE_ID || 'es_419',
+    sessionId: `semi-social-${userId || 'guest'}`,    text: message,
   });
 
   const response = await lexClient.send(command);

@@ -49,6 +49,7 @@ Nota local:
 
 ## 5. Endpoints Implementados  
 
+
 ### 5.1 Auth / IA (`/api/auth`)
 - `POST /register`
   - Registro en Cognito + insercion local en `users` con `password_md5`.
