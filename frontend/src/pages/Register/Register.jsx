@@ -10,14 +10,25 @@ function stripDataUrlPrefix(imageDataUrl) {
 function translateError(errorMsg) {
   if (!errorMsg) return '';
   const msg = errorMsg.toLowerCase();
+  // Backend local DB errors
+  if (msg.includes('same email, username, or dpi already exists')) return 'Ya existe una cuenta con ese correo, usuario o DPI. Prueba con otros datos.';
+  if (msg.includes('user with the same')) return 'Ya existe una cuenta con ese correo, usuario o DPI.';
+  if (msg.includes('already exists in the database')) return 'Estos datos ya están registrados en el sistema.';
+  if (msg.includes('contraseña requerida')) return 'Debes ingresar tu contraseña para continuar.';
+  if (msg.includes('contraseña incorrecta')) return 'La contraseña ingresada es incorrecta.';
   // Cognito errors
-  if (msg.includes('password did not conform with policy')) return 'La contraseña no cumple con los requisitos (min 8 caracteres, mayúscula, número, símbolo).';
+  if (msg.includes('password did not conform with policy')) return 'La contraseña no cumple con los requisitos (mín. 8 caracteres, mayúscula, número, símbolo).';
   if (msg.includes('user already exists')) return 'Ya existe una cuenta registrada con ese correo.';
   if (msg.includes('invalid email address')) return 'El formato del correo no es válido.';
-  if (msg.includes('invalid verification code')) return 'El código de confirmación es inválido o ha expirado.';
+  if (msg.includes('invalid verification code') || msg.includes('code mismatch')) return 'El código de confirmación es inválido o ha expirado.';
+  if (msg.includes('expired')) return 'El código ha expirado. Solicita uno nuevo.';
   if (msg.includes('limit exceeded')) return 'Límite de intentos excedido. Intenta de nuevo más tarde.';
-  if (msg.includes('validation')) return 'Error de validación en los datos.';
-  return errorMsg; 
+  if (msg.includes('validation')) return 'Error de validación en los datos ingresados.';
+  if (msg.includes('not authorized')) return 'No tienes autorización para realizar esta acción.';
+  if (msg.includes('user not found')) return 'Usuario no encontrado en el sistema.';
+  if (msg.includes('network') || msg.includes('fetch')) return 'Error de conexión. Verifica tu red e intenta de nuevo.';
+  // Fallback: return a generic Spanish message instead of raw English
+  return 'Ocurrió un error inesperado. Por favor, intenta de nuevo.';
 }
 
 export default function Register() {
@@ -213,8 +224,15 @@ export default function Register() {
                   </div>
                 </div>
 
-                <div className="min-h-[20px]">
-                  {error && <p className="text-xs text-red-500 text-center animate-fade-in">{error}</p>}
+                <div className="min-h-[28px]">
+                  {error && (
+                    <div className="flex items-start gap-2.5 bg-red-950/40 border border-red-500/40 rounded-xl px-4 py-3 animate-fade-in">
+                      <svg className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                      </svg>
+                      <p className="text-xs text-red-300 font-medium leading-relaxed">{error}</p>
+                    </div>
+                  )}
                 </div>
 
                 <button
