@@ -22,6 +22,16 @@ Para poder interactuar con la plataforma, primero debes crear una cuenta.
 
 > ⚠️ **Importante:** Tu cuenta solo quedará activa y visible para otros usuarios **después** de confirmar el código de tu correo. Si no confirmas, no aparecerás listado en la plataforma.
 
+![Página principal - Home](./imgs/user/01-home.png)
+
+![Formulario de registro](./imgs/user/02-register.png)
+
+![Verificación de correo - pantalla inicial](./imgs/user/03-verify-empty.png)
+
+![Código de verificación recibido por email](./imgs/user/04-email-code.png)
+
+![Verificación de correo - código ingresado](./imgs/user/05-verify-filled.png)
+
 ---
 
 ## 2. Iniciar Sesión
@@ -37,6 +47,8 @@ Puedes acceder a tu cuenta utilizando credenciales clásicas o, de manera rápid
 1. Selecciona la opción **Login Facial** en la pantalla de inicio.
 2. Permite el acceso a tu cámara web.
 3. Tómate una foto. El sistema usará **Amazon Rekognition** para comparar tu rostro con tu foto de perfil. Si coincide (por encima del umbral de similitud configurado), accederás inmediatamente.
+
+![Pantalla de inicio de sesión](./imgs/user/06-login.png)
 
 ---
 
@@ -59,6 +71,12 @@ El **Feed** es el corazón de Semi-Social. Aquí verás únicamente las publicac
 ### Comentar:
 - Abajo de cada publicación, escribe tu comentario y presiona **Enviar**.
 
+![Feed principal vacío](./imgs/user/07-feed-empty.png)
+
+![Creando una publicación](./imgs/user/08-creating-post.png)
+
+![Publicación publicada con etiquetas y comentarios](./imgs/user/09-post-published.png)
+
 ---
 
 ## 4. Traducción de Contenidos
@@ -77,6 +95,8 @@ Puedes traducir la descripción de una publicación **y** cada comentario de for
 - Haz clic de nuevo para ocultarla.
 
 > La traducción utiliza **Amazon Translate** con detección automática del idioma fuente.
+
+![Traducción de publicación y comentarios](./imgs/user/10-post-translation.png)
 
 ---
 
@@ -102,6 +122,16 @@ Para ver las publicaciones de otros usuarios y enviarles mensajes, primero deben
 - En el panel "Solicitudes Pendientes" verás a las personas que te enviaron solicitudes.
 - Usa el botón ✓ (verde) para **aceptar** o ✗ (rojo) para **rechazar**.
 
+![Agregar nuevos amigos](./imgs/user/11-friends-add.png)
+
+![Solicitud de amistad enviada](./imgs/user/12-friends-request-sent.png)
+
+![Solicitudes pendientes recibidas](./imgs/user/13-friends-pending.png)
+
+![Amistad aceptada - notificación](./imgs/user/14-friends-accepted.png)
+
+![Lista de amigos confirmados](./imgs/user/15-friends-list.png)
+
 ---
 
 ## 6. Chat en Tiempo Real
@@ -117,6 +147,12 @@ Puedes comunicarte instantáneamente con tus **amigos aceptados** mediante el m�
 ### Estado de conexión:
 - 🟢 **En línea** — El amigo está actualmente en la aplicación.
 - ⚫ **Desconectado** — El amigo no está navegando la plataforma en este momento.
+
+![Pantalla de chats vacía](./imgs/user/16-chats-empty.png)
+
+![Modal para iniciar nuevo chat](./imgs/user/17-new-chat-modal.png)
+
+![Conversación activa en tiempo real](./imgs/user/18-chat-conversation.png)
 
 ---
 
@@ -142,6 +178,12 @@ Para actualizar tus datos personales:
 5. Haz clic en **Guardar cambios**.
 
 > Al entrar en modo edición, verás una previsualización de tu foto de perfil actual como referencia.
+
+![Vista del perfil de usuario](./imgs/user/19-view-profile.png)
+
+![Formulario de edición de perfil](./imgs/user/20-edit-profile.png)
+
+![Perfil actualizado correctamente](./imgs/user/21-profile-updated.png)
 
 ---
 
