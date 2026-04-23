@@ -182,7 +182,7 @@ export default function Friends() {
       </div>
 
       {/* ── Buscador universal ─── */}
-      <div className="relative z-10 w-full max-w-5xl mb-8 animate-fade-in-up" ref={searchRef}>
+      <div className="relative z-[100] w-full max-w-5xl mb-8 animate-fade-in-up" ref={searchRef}>
         <div className="bg-slate-800/80 backdrop-blur-xl rounded-2xl border border-slate-700 shadow-xl p-4 flex items-center gap-3">
           <svg className="w-5 h-5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
