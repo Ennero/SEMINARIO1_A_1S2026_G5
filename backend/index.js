@@ -24,6 +24,7 @@ const chatRoutes = require('./routes/chat');
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
+  path: '/socket.io',
   cors: {
     origin: process.env.CLIENT_URL || 'http://localhost:3000',
     methods: ['GET', 'POST'],
@@ -47,8 +48,8 @@ app.use('/api/users', usersRoutes);
 app.use('/api/chat', chatRoutes);
 
 // Health check
-app.get('/', (req, res) => {
-  res.json({ message: 'Semi-Social API is running' });
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ message: 'Semi-Social API is running' });
 });
 
 // Socket.io connection
@@ -81,6 +82,6 @@ io.on('connection', (socket) => {
   });
 });
 
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0',() => {
   console.log(`Server running on port ${PORT}`);
 });

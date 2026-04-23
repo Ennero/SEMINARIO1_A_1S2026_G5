@@ -10,7 +10,9 @@ import {
 } from '../../services/chatService';
 
 // Initialize socket outside component to avoid multiple connections
-const socket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000');
+const socket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000', {
+  path: "/socket.io"
+});
 
 export default function Chats() {
   const sessionUser = useMemo(() => getSessionUser(), []);
