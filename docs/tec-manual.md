@@ -735,19 +735,3 @@ cd frontend && npm run dev
 
 ---
 
-## 12. Estado Actual del Proyecto
-
-| Módulo | Estado |
-|---|---|
-| Auth (registro / login / facial) | ✅ Implementado |
-| Confirmación Cognito + marcado en DB | ✅ Implementado |
-| Publicaciones / comentarios / tags Rekognition | ✅ Implementado |
-| Filtro feed solo amigos | ✅ Implementado |
-| Traducción descripción (independiente) | ✅ Implementado |
-| Traducción comentarios (independiente por comentario) | ✅ Implementado |
-| Gestión amigos + búsqueda en tiempo real | ✅ Implementado |
-| Solicitudes aceptar/rechazar (CORS PATCH fix) | ✅ Implementado |
-| Chat en tiempo real (Socket.io) | ✅ Implementado |
-| Presencia online real (En línea / Desconectado) | ✅ Implementado |
-| Favicon SS personalizado | ✅ Implementado |
-| Despliegue cloud final | ⏳ Pendiente |
