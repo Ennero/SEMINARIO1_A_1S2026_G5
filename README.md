@@ -4,7 +4,12 @@
 
 | Nombre | Carné |
 |--------|-------|
-|        |       |
+| 202302220 | Enner Esai Mendizabal Castro |
+| 202200129 | Luis Pablo Manuel Garcia Lopez |
+| 202000886 | Jose Ricardo Menocal Kong |
+| 202006633 | Katherin Alejandra Galvez Chiroy |
+| 202300601 | Diego Alessandro Constanza Padilla |
+| 202300636 | Jose Emilio Morales Castillo |
 
 ## Descripción de la arquitectura
 
