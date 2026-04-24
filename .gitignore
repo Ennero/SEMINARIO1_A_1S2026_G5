@@ -185,3 +185,7 @@ Thumbs.db
 # AWS
 */keys
 *vars.json
+
+# Misc
+.DS_Store
+*.pem
