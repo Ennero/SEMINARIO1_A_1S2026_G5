@@ -1,0 +1,22 @@
+services:
+  controller:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    container_name: controller-host
+    networks:
+      - ansible-net
+    volumes:
+      - ./controller/:/infra/
+      - ./keys/:/keys/
+      - ../../.env:/keys/.env
+      - ../../backend/:/backend/
+    
+    # Para que no se muera al nomas prenderlo
+    tty: true
+    stdin_open: true
+
+networks:
+  ansible-net:
+    driver: bridge

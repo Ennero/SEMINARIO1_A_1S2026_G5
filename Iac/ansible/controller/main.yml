@@ -1,0 +1,153 @@
+# Instalar docker
+- name: Install Docker on Ubuntu using official Docker repo
+  hosts: server
+  become: true
+  # tags: never
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: Ensure dependencies are installed
+      ansible.builtin.package:
+        name:
+          - bc
+          - curl
+          - expect
+          - git
+          - ca-certificates
+          - unzip
+        state: present
+
+    - name: Create Docker GPG key directory
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: "0755"
+
+    - name: Download Docker's official GPG key
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: "0644"
+
+    - name: Get architecture
+      ansible.builtin.command: dpkg --print-architecture
+      register: dpkg_arch
+      changed_when: false
+
+    - name: Add Docker repository to Apt sources
+      ansible.builtin.apt_repository:
+        repo: >-
+          deb [arch={{ dpkg_arch.stdout }} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu
+          {{ ansible_distribution_release }} stable
+        state: present
+        filename: docker
+
+    - name: Update apt cache after adding Docker repository
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: Install Docker and Docker Compose
+      ansible.builtin.package:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+
+    - name: Ensure Docker service is enabled and started
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add ubuntu user to docker group
+      ansible.builtin.user:
+        name: ubuntu
+        groups: docker
+        append: yes
+
+    # Instalacion de la CLI AWS
+    - name: Descargar e instalar AWS CLI
+      shell: |
+        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+        unzip -o awscliv2.zip
+        sudo ./aws/install --update
+      args:
+        creates: /usr/local/bin/aws
+
+- name: Running Server
+  # tags: never
+  hosts: server
+  tasks:
+    - name: Asegurar que el directorio de la app
+      ansible.builtin.file:
+        path: /home/ubuntu/app
+        state: directory
+
+    - name: Copiar el archivo .env
+      ansible.builtin.copy:
+        src: /keys/.env
+        dest: /home/ubuntu/app/.env
+
+    - name: Copiar el Backend
+      ansible.builtin.copy:
+        src: /backend/
+        dest: /home/ubuntu/app/
+
+    - name: Build the Docker image from Dockerfile
+      become: true
+      community.docker.docker_image:
+        name: server
+        tag: latest
+        build:
+          path: /home/ubuntu/app
+          nocache: yes
+          pull: yes
+        source: build
+        state: present
+      register: build_result
+
+    # - name: Running the app
+    #   become: true
+    #   community.docker.docker_container:
+    #     name: server
+    #     image: "server:latest"
+    #     state: started
+    #     restart_policy: always
+    #     env_file: "/home/ubuntu/app/.env"
+    #     published_ports:
+    #       - "80:5000"
+    #     recreate: yes
+
+    - name: Crear archivo de servicio para el Backend
+      become: yes
+      copy:
+        dest: /etc/systemd/system/backend.service
+        content: |
+          [Unit]
+          Description=Contenedor de Backend Server
+          After=docker.service
+          Requires=docker.service
+
+          [Service]
+          TimeoutStartSec=0
+          Restart=always
+          ExecStartPre=-/usr/bin/docker stop server
+          ExecStartPre=-/usr/bin/docker rm server
+          ExecStart=/usr/bin/docker run --name server -p 80:5000 --env-file /home/ubuntu/app/.env server:latest
+          ExecStop=/usr/bin/docker stop server
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Habilitar e iniciar el servicio
+      become: yes
+      systemd:
+        name: backend.service
+        enabled: yes
+        state: started
+        daemon_reload: yes
