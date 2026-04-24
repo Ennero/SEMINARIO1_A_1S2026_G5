@@ -32,6 +32,67 @@ La solución sigue una arquitectura **SPA + API REST + Servicios AWS**:
 | Chatbot | Amazon Lex v2 | Bot informativo universitario |
 | Chat en tiempo real | Socket.io | Mensajes + presencia online en tiempo real |
 
+### Diagrama de Arquitectura
+
+```mermaid
+flowchart TB
+    subgraph Cliente["Cliente (Navegador)"]
+        U[Usuario]
+    end
+
+    subgraph AWS["AWS Cloud"]
+        subgraph WebLayer["Capa Web"]
+            S3WEB["S3 Static Website Hosting<br/>React SPA (Vite)"]
+        end
+
+        subgraph ComputeLayer["Capa de Computo"]
+            ALB["Application Load Balancer"]
+            EC2_1["EC2 Instancia 1<br/>Node.js + Express"]
+            EC2_2["EC2 Instancia 2<br/>Node.js + Express"]
+        end
+
+        subgraph DataLayer["Capa de Datos"]
+            RDS["Amazon RDS<br/>PostgreSQL 15"]
+            S3IMG["S3 Bucket<br/>Fotos_Perfil / Fotos_Publicadas"]
+        end
+
+        subgraph ServerlessLayer["Capa Serverless"]
+            APIGW["API Gateway"]
+            LAMBDA["Lambda: imageUploader"]
+        end
+
+        subgraph AIServices["Servicios de IA y Seguridad"]
+            COGNITO["Amazon Cognito<br/>User Pool + Verificacion Email"]
+            REKOG["Amazon Rekognition<br/>Etiquetas + Login Facial"]
+            TRANS["Amazon Translate<br/>Traduccion multilingue"]
+            LEX["Amazon Lex v2<br/>Chatbot universitario"]
+        end
+    end
+
+    U -->|HTTPS| S3WEB
+    S3WEB -->|API REST + WebSocket| ALB
+    ALB -->|Distribuye trafico| EC2_1
+    ALB -->|Distribuye trafico| EC2_2
+
+    EC2_1 <-->|Socket.io| U
+    EC2_2 <-->|Socket.io| U
+
+    EC2_1 -->|SQL| RDS
+    EC2_2 -->|SQL| RDS
+
+    EC2_1 -->|SDK v3| COGNITO
+    EC2_1 -->|SDK v3| REKOG
+    EC2_1 -->|SDK v3| TRANS
+    EC2_1 -->|SDK v3| LEX
+    EC2_1 -->|SDK v3| S3IMG
+
+    S3WEB -->|POST Base64| APIGW
+    APIGW -->|Trigger| LAMBDA
+    LAMBDA -->|PutObject| S3IMG
+
+    REKOG -->|CompareFaces / DetectLabels| S3IMG
+```
+
 ---
 
 ## 3. Estructura Principal de Código
