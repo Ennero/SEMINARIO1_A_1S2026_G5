@@ -1,4 +1,23 @@
-# Semi-Social
+<div align="center">
+
+# 🚀 Fullstack Web Application with Scrum & CI/CD (Seminario 1)
+
+**Proyecto integral de ingeniería de software desarrollado bajo marco Scrum, con arquitectura fullstack y despliegue en la nube.**
+
+[![Language](https://img.shields.io/badge/Language-JavaScript,%20React,%20Node.js-blue?style=for-the-badge)](https://github.com/Ennero/SEMINARIO1_A_1S2026_G5)
+[![Course](https://img.shields.io/badge/Course-Seminario%20de%20Sistemas%201-003366?style=for-the-badge)](https://ingenieria.usac.edu.gt/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
+
+</div>
+
+---
+
+
+## 📌 Contexto Académico
+
+Proyecto desarrollado en el marco del curso **Seminario de Sistemas 1** de la carrera de Ingeniería en Ciencias y Sistemas en la Universidad de San Carlos de Guatemala (USAC).
+
+---
 
 > Red social universitaria desplegada en AWS con autenticacion Cognito, reconocimiento facial, chat en tiempo real, traduccion automatica y chatbot integrado.
 
@@ -243,3 +262,16 @@ npm run dev        # Vite en puerto 3000
 
 > **Universidad de San Carlos de Guatemala** - Facultad de Ingenieria - Escuela de Ciencias y Sistemas  
 > *Seminario de Sistemas 1 - Abril 2026*
+
+---
+
+## 📄 Licencia
+
+Este proyecto está bajo la Licencia **MIT**. Consulta el archivo [LICENSE](LICENSE) para más detalles.
+
+---
+
+## 👨‍💻 Autor
+
+- **Enner Mendizabal** - [@Ennero](https://github.com/Ennero)  
+- *Facultad de Ingeniería, Universidad de San Carlos de Guatemala.*
