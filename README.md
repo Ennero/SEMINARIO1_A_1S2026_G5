@@ -1,23 +1,6 @@
-<div align="center">
+# Semi-Social — red social universitaria con servicios AWS
 
-# 🚀 Fullstack Web Application with Scrum & CI/CD (Seminario 1)
-
-**Proyecto integral de ingeniería de software desarrollado bajo marco Scrum, con arquitectura fullstack y despliegue en la nube.**
-
-[![Language](https://img.shields.io/badge/Language-JavaScript,%20React,%20Node.js-blue?style=for-the-badge)](https://github.com/Ennero/SEMINARIO1_A_1S2026_G5)
-[![Course](https://img.shields.io/badge/Course-Seminario%20de%20Sistemas%201-003366?style=for-the-badge)](https://ingenieria.usac.edu.gt/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
-
-</div>
-
----
-
-
-## 📌 Contexto Académico
-
-Proyecto desarrollado en el marco del curso **Seminario de Sistemas 1** de la carrera de Ingeniería en Ciencias y Sistemas en la Universidad de San Carlos de Guatemala (USAC).
-
----
+Aplicación de equipo con React, Express, PostgreSQL, chat y servicios AWS de autenticación, almacenamiento y procesamiento de contenido.
 
 > Red social universitaria desplegada en AWS con autenticacion Cognito, reconocimiento facial, chat en tiempo real, traduccion automatica y chatbot integrado.
 
@@ -30,7 +13,7 @@ Proyecto desarrollado en el marco del curso **Seminario de Sistemas 1** de la ca
 
 ## Tabla de Contenidos
 
-- [Semi-Social](#semi-social)
+- [Semi-Social](#semi-social--red-social-universitaria-con-servicios-aws)
   - [Tabla de Contenidos](#tabla-de-contenidos)
   - [Descripcion](#descripcion)
   - [Tecnologias Principales](#tecnologias-principales)
@@ -263,15 +246,9 @@ npm run dev        # Vite en puerto 3000
 > **Universidad de San Carlos de Guatemala** - Facultad de Ingenieria - Escuela de Ciencias y Sistemas  
 > *Seminario de Sistemas 1 - Abril 2026*
 
----
 
-## 📄 Licencia
+## Servicios requeridos y alcance local
 
-Este proyecto está bajo la Licencia **MIT**. Consulta el archivo [LICENSE](LICENSE) para más detalles.
+Copiar `.env.example` a `.env` y configurar los recursos AWS propios que se detallan en el manual: Cognito, S3, Rekognition, Translate y Lex. Docker Compose prepara los procesos locales, pero no crea ni sustituye esos servicios cloud. Sin esa configuración, las funciones que dependen de AWS no están disponibles. Las credenciales personales permanecen fuera de Git.
 
----
-
-## 👨‍💻 Autor
-
-- **Enner Mendizabal** - [@Ennero](https://github.com/Ennero)  
-- *Facultad de Ingeniería, Universidad de San Carlos de Guatemala.*
+Los resultados y créditos de la entrega se conservan en la documentación del equipo; la existencia de workflows o scripts no implica que un despliegue AWS esté activo.
